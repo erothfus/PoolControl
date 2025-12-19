@@ -1,0 +1,90 @@
+//
+// ValveAndTemp.ino
+//
+//   Control valves and monitor temperature.
+//
+#include "valve.h"
+#include "thermometer.h"
+#include "heater.h"
+#include "pump.h"
+#include "light.h"
+#include "control.h"
+#include <time.h>
+#include "EEPROM.h"
+
+Valve *valve[2];	// valves go here
+Thermometer *therm[1];	// thermometers go here (just one for now)
+Heater *heater[1];	// got a single heater of course
+Pump *pump[2];		// we have two pumps: main and booster
+Light *light[1];	// we have one light for now (need more!)
+
+void setup()
+{
+  // initialize serial communication at 9600 bits per second:
+  Serial.begin(9600);
+
+  // the following lines have pin definition for the valves:
+  //
+  //                     relay   relay   current  nv storage
+  //                    common direction monitor  eeprom address
+  //                    ------ --------- ------- ----------------
+  valve[0] = new Valve(   2,     3,       A7   ,  VALVE_EEPROM_ADDRESS);
+  valve[1] = new Valve(   4,     5,       A6   ,  VALVE_EEPROM_ADDRESS + VALVE_EEPROM_INCR);
+
+  // configuring values is a user-side thing, for now:
+  //
+  //                min  max
+  //                deg  deg
+  //                ---  ---
+  valve[0]->config(  0,  180  );
+  valve[1]->config(  90, 180  );
+
+  // thermometers are configured with the pin and the resistor
+  //   that forms the voltage divider. The resistor is given in K ohms.
+  therm[0] = new Thermometer(A3,10,THERMOMETER_EEPROM_ADDRESS);
+
+  // there is but one heater - so set it up with its relay pin
+  //   and the termometer
+  heater[0] = new Heater(6,therm[0],HEATER_EEPROM_ADDRESS);
+
+  // we have two pumps: main and booster
+  //   the main pump must be running for the booster to be running
+  pump[0] = new Pump(   10,   11,   12, PUMP_EEPROM_ADDRESS);
+  pump[1] = new Pump(   A1, PUMP_EEPROM_ADDRESS + PUMP_EEPROM_INCR);
+
+  // set-up the control system through I2C. It needs to have access
+  //   to the control "surface" so pass it arrays of valves and
+  //   thermometers
+
+  light[0] = new Light(7, LIGHT_EEPROM_ADDRESS);
+
+  ControlSetup(valve,2,therm,1,heater,1,pump,2,light,1);
+
+  // DEBUG - run through high-power relays
+  //  delay(1000);
+  //  pump[0]->control(1);
+  // delay(1000);
+  // pump[0]->control(2);
+  // delay(1000);
+  // pump[0]->control(0);
+  // delay(1000);
+  // pump[1]->control(1);
+  // delay(1000);
+  // pump[1]->control(0);
+  // delay(1000);
+  
+}
+
+// the loop serves to process the ongoing state machines for
+//   valves, as initiated by control.
+
+void loop()
+{
+  valve[0]->loop();
+  valve[1]->loop();
+  heater[0]->loop();
+  therm[0]->loop();
+  pump[0]->loop();
+  pump[1]->loop();
+  light[0]->loop();
+}

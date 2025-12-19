@@ -1,0 +1,564 @@
+
+/* the body has a pooly background and sets-up to make everything centered */
+
+body {
+    /*    background-image: url('/at9k_5tgc_230302.jpg'); */
+    background-image: linear-gradient(to top,#012d4e,#0a7dbc);
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    min-height: 100vh;
+    width: 100vw;
+    margin: 0;
+}
+
+/* hide ALL <a> text decorations */
+
+a {
+    text-decoration: none;
+}
+
+a:visited {
+    color: inherit;
+}
+
+#bubbleCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+}
+
+/* standard header for all pages */
+
+.header {
+    box-sizing: border-box;
+    background-color: #012d4e;
+    width: 100%;
+    padding-left: 40px;
+    padding-right: 40px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+}
+
+.header .title, .header .settings {
+    font-family: sans-serif;
+    color: white;
+    font-size: 100px;
+    font-weight: bold;
+}
+
+.header .title {
+    padding-top: 10px;
+}
+
+.settingsPage {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    width: 100%;
+    height: 100%
+}
+
+.settingsPage .title {
+    font-family: sans-serif;
+    color: white;
+    font-size: 60px;
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.settingsPage .status {
+    margin-left: 5%;
+    margin-right: 5%;
+    box-sizing: border-box;
+    border: 10px solid white;
+    border-radius: 30px;
+    border-color: #c0ccff;
+    min-width: 90%;
+    padding: 0px 20px 10px 20px;
+}
+
+.settingsPage .status .title {
+    font-family: sans-serif;
+    color: white;
+    font-size: 40px;
+}
+
+.settingsPage .status .entry {
+    background-color: rgba(255,255,255,.1);
+    padding-bottom: 10px;
+    padding-top: 10px;
+}
+
+.settingsPage .status .valve,
+.settingsPage .status .pump,
+.settingsPage .status .heater,
+.settingsPage .status .thermometer,
+.settingsPage .status .light {
+    width: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+    margin-bottom: 20px;
+}
+
+.settingsPage .status .valve .settings,
+.settingsPage .status .pump .settings,
+.settingsPage .status .heater .settings,
+.settingsPage .status .thermometer .settings,
+.settingsPage .status .light .settings {
+    flex-grow: 1;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    padding-right: 10px;
+    align-items: center;
+}
+.settingsPage .status .valve .settings a img,
+.settingsPage .status .pump .settings a img,
+.settingsPage .status .heater .settings a img,
+.settingsPage .status .thermometer .settings a img,
+.settingsPage .status .light .settings a img {
+    font-family: sans-serif;
+    color: white;
+    width: 80px;
+}
+
+.dialog-container .bottom {
+    cursor: pointer;
+}
+
+.settingsPage .status .valve > img,
+#settings-v0 .dialog-container .title-bar img,
+#settings-v1 .dialog-container .title-bar img
+{
+    width: 90px;
+    object-fit: contain;
+}
+.settingsPage .status .pump > img,
+#settings-p0 .dialog-container .title-bar img,
+#settings-p1 .dialog-container .title-bar img
+{
+    width: 100px;
+    object-fit: contain;
+}
+.settingsPage .status .heater > img,
+#settings-heater .dialog-container .title-bar img {
+    width: 50px;
+    margin-left: 20px;
+    margin-right: 20px;
+    object-fit: contain;
+}
+.settingsPage .status .thermometer > img,
+#settings-temp .dialog-container .title-bar img {
+    width: 35px;
+    margin-left: 30px;
+    margin-right: 25px;
+    object-fit: contain;
+}
+.settingsPage .status .light > img {
+    width: 70px;
+    margin-left: 15px;
+    margin-right: 15px;
+    object-fit: contain;
+}
+.settingsPage .status .valve .name,
+.settingsPage .status .pump .name,
+.settingsPage .status .heater .name,
+.settingsPage .status .thermometer .name,
+.settingsPage .status .light .name {
+    font-family: sans-serif;
+    color: white;
+    font-size: 60px;
+    position: relative;
+    top: 12px;
+    margin-left: 10px;
+}
+.settingsPage .status .valve .degreeContainer,
+.settingsPage .status .thermometer .degreeContainer {
+    width: 120px;
+    height: 70px;
+    display: flex;
+    flex-flow: row nowrap;
+    padding: 0px 10px 10px 10px;
+    background-color: white;
+    margin-left: 20px;
+    justify-content: center;
+    margin-top: 5px;
+    border-radius: 30px;
+}
+
+.settingsPage .status .valve .degreeContainer .degrees,
+.settingsPage .status .thermometer .degreeContainer .degrees {
+    font-family: sans-serif;
+    color: green;
+    font-size: 50px;
+    font-weight: bold;
+    position: relative;
+    top: 12px;
+}
+.settingsPage .status .valve .degreeContainer .dsym,
+.settingsPage .status .thermometer .degreeContainer .dsym {
+    font-family: sans-serif;
+    color: green;
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.settingsPage .status .progress {
+    box-sizing: border-box;
+    height: 20px;
+    width: 0%;
+    border: 3px solid black;
+    background-color: #55aaff;
+    animation: pulse-width 5s infinite;
+    animation-timing-function: linear;
+    animation-delay: 500ms;
+}
+
+@keyframes pulse-width {
+    0% {
+	width: 0;
+    }
+    100% {
+	width: 100%;
+    }
+}
+
+#settings-v0, #settings-v1, #settings-heater, #settings-temp {
+    width: 500px;
+    height: 500px;
+    box-shadow: 15px 15px 20px 6px rgba(0,0,0,0.5);
+    border: none;
+    border-radius: 20px;
+    padding: 0px;
+    background-color: #033b60;
+}
+
+#settings-temp {
+    width: 500px !IMPORTANT;
+    height: 800px !IMPORTANT;
+}
+
+#settings-temp .body {
+    display: flex;
+}
+
+#settings-temp .body .left {
+    height: 100%;
+    position: relative;
+    margin-top: 10px;
+    margin-left: 20px;
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+#settings-temp .body .left .therm {
+    width: 90px;
+}
+
+#settings-temp .body .left .ticks {
+    display: flex;
+    flex-flow: column nowrap;
+    position: relative;
+}
+
+#settings-temp .body .left .tick-labels {
+    display: flex;
+    flex-flow: column nowrap;
+    position: relative;
+}
+
+#settings-temp .body .left .tick,
+#settings-temp .body .left .tick-label {
+    height: 66px;
+}
+
+#settings-temp .body .left .tick {
+    position: relative;
+    top: 30px;
+    width: 30px;
+    border-top: 5px solid black;
+    box-sizing: border-box;
+}
+#settings-temp .body .left .tick-label {
+    width: 55px;
+    position: relative;
+    top: 15px;
+    font-size: 30px;
+    font-family: sans-serif;
+    text-align: center;
+}
+
+#settings-temp .body .left input {
+    height: 100%;
+    transform: scale(3.3) rotate(-90deg);
+    accent-color: #0d8cfd;
+    transform-origin: right;
+    position: relative;
+    left: -75px;
+    top:10px;
+}
+
+#settings-temp .body .left .outline {
+    position: absolute;
+    top: 0px;
+    pointer-events: none;
+}
+
+#settings-temp .body .left .outline img {
+    height: 500px;
+    width: 110px;
+}
+
+#settings-temp .body .left .slider {
+    position: absolute;
+    top: 0px;
+}
+
+#settings-temp .body .left input:focus {
+    outline: none;
+    border: none;
+}
+
+#settings-temp .body .right {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+#settings-temp .body .right .title {
+    font-size: 40px;
+    font-family: sans-serif;
+    text-align: center;
+}
+
+#settings-temp .body .right input {
+    font-size: 80px;
+    font-family: sans-serif;
+    width: 140px;
+    text-align: center;
+}
+
+#settings-temp .body .right .updowns {
+    margin-top: 20px;
+    display: flex;
+}
+
+#settings-temp .body .right .updowns .up,
+#settings-temp .body .right .updowns .down {
+    font-size: 60px;
+    margin: 20px;
+    height: 80px;
+    width: 80px;
+    box-shadow: 15px 15px 20px 6px rgba(0,0,0,0.5);
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#settings-temp .body .right .updowns .up:active,
+#settings-temp .body .right .updowns .down:active {
+    box-shadow: 5px 5px 10px 6px rgba(0,0,0,0.5);
+}
+#settings-temp .body .right .updowns .up {
+    background-color: #ffaaaa;
+}
+#settings-temp .body .right .updowns .down {
+    background-color: #aaaaff;
+}
+
+.dialog-container {
+    box-sizing: border-box;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
+}
+
+.dialog-container .title-bar {
+    width: 100%;
+    height: 120px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+}
+
+.dialog-container .title-bar .name {
+    font-family: sans-serif;
+    color: white;
+    font-size: 60px;
+    position: relative;
+    top: 25px;
+    margin-left: 15px;
+}
+
+.dialog-container .bottom {
+    width: 100%;
+    height: 80px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    font-family: sans-serif;
+    color: white;
+    font-size: 40px;
+    padding-top: 15px;
+}
+
+
+.dialog-container .body {
+    background-color: white;
+    flex-grow: 1;
+}
+
+/* get rid of any outline that messes things up! */
+
+dialog:focus, dialog:focus-within, dialog:focus-visible, dialog:active {
+    outline: none;
+    border: none;
+}
+
+.valve-slider {
+    margin-top: 20px;
+    width: 20%;
+    height: 40px;
+    transform-origin: left;
+    transform: scale(3);
+}
+
+.valve-slider:focus {
+    outline: none;
+}
+
+/* dialog backdrop settings */
+::backdrop {
+    background-color: grey;
+    opacity: .7;
+    border: none;
+}
+
+/* leds for on/off indicators - note that the structure of the
+   html for the leds is very specific - messing around will break
+   all of this - that's what happens when the javascript is
+   disconnected from the definition - in other words, GENERATING
+   the LEDS with javascript would make the code less rickety
+*/
+
+.status .led {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    margin-left: 30px;
+    padding-bottom: 10px;
+}
+
+.status .led .label {
+    font-family: sans-serif;
+    color: white;
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+.status .led .imageSwitchable {
+    height: 75px;
+    width: 75px;
+}
+
+.status .led .imageSwitchable .image {
+    height: 100%;
+    width: 100%;
+}
+
+.status .led .imageSwitchable .image.on {
+    display: block;
+}
+.status .led .imageSwitchable .image {
+    display: none;
+}
+
+.status .heater.entry .led-flame .imageSwitchable img {
+    width: 50px;
+    margin-left: 10px;
+    object-fit: contain;
+}
+
+/* main screen selections */
+
+.controller {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-evenly;
+}
+
+.controller .selection {
+    margin: 20px;
+    height: 400px;
+    width: 400px;
+    border: 10px solid #eeeeee;
+    border-radius: 20px;
+    background-color: black;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+}
+
+.controller .selection:active {
+    background-color: green;
+}
+
+.controller .selection .infoBox {
+    position: absolute;
+    right: -20px;
+    top: -20px;
+    height: 100px;
+    width: 100px;
+    border-radius: 30px;
+    background-color: red;
+}
+
+.controller .selection .infoBox span {
+    position: relative;
+    top: 25px;
+    left: 15px;
+    color: white;
+    font-size: 50px;
+    font-weight: bold;
+}
+
+.controller .selection .title {
+    font-family: sans-serif;
+    color: white;
+    font-size: 60px;
+    box-sizing: border-box;
+}
+
+.controller .selection .title .info {
+    margin-left: 20px;
+    font-size: 40px;
+    color:grey;
+}
+
+.controller .selection .icon {
+    height: 250px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+}
+
+.controller .selection .icon img {
+    box-sizing: border-box;
+    object-fit: contain;
+    height: 100%;
+    width: 100%;
+}

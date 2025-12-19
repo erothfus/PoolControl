@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <script src="bubbles.js" defer></script>
+    <script src="status.js" defer></script>
+    <script src="ui.js" defer></script>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+  </head>
+  <body>
+    <canvas id="bubbleCanvas"></canvas>
+
+    <div class="header">
+      <div class="title">Paul's Pool</div>
+      <div class="settings"><a href="index.html">&#8962;</a></div>
+    </div>
+
+    <div class="settingsPage">
+      <div class="title">Settings</div>
+      <div class="status">
+	<div class="title">Status</div>
+
+	<div class="valve v0 entry">
+	  <img src="valve.png" />
+	  <div class="name">Drain</div>
+	  <div class="degreeContainer">
+	    <div class="degrees">n/a</div>
+	    <div class="dsym">&deg;</div>
+	  </div>
+	  <div class="settings"><a onClick="document.getElementById('settings-v0').showModal()"><img src="gear.png" /></a></div>	  
+	</div>
+
+	<div class="valve v1 entry">
+	  <img src="valve.png" />
+	  <div class="name">Return</div>
+	  <div class="degreeContainer">
+	    <div class="degrees">n/a</div>
+	    <div class="dsym">&deg;</div>
+	  </div>
+	  <div class="settings"><a onClick="document.getElementById('settings-v1').showModal()"><img src="gear.png" /></a></div>	  
+	</div>
+
+	<div class="pump p0 entry">
+	  <img src="pump.png" />
+	  <div class="name">Main</div>
+	  <div class="led led0">
+	    <div class="label">OFF</div>
+	    <div class="imageSwitchable">
+	      <img class="image lit" src="on-red.png">
+	      <img class="image on unlit" src="off.png">
+	    </div>
+	  </div>
+	  <div class="led led1">
+	    <div class="label">LOW</div>
+	    <div class="imageSwitchable">
+	      <img class="image lit" src="on-green.png">
+	      <img class="image on unlit" src="off.png">
+	    </div>
+	  </div>
+	  <div class="led led2">
+	    <div class="label">HIGH</div>
+	    <div class="imageSwitchable">
+	      <img class="image lit" src="on-green.png">
+	      <img class="image on unlit" src="off.png">
+	    </div>
+	  </div>
+	</div>
+
+	<div class="pump p1 entry">
+	  <img src="pump.png" />
+	  <div class="name">Boost</div>
+	  <div class="led led0">
+	    <div class="label">OFF</div>
+	    <div class="imageSwitchable">
+	      <img class="image lit" src="on-red.png">
+	      <img class="image on unlit" src="off.png">
+	    </div>
+	  </div>
+	  <div class="led led1">
+	    <div class="label">ON</div>
+	    <div class="imageSwitchable">
+	      <img class="image lit" src="on-green.png">
+	      <img class="image on unlit" src="off.png">
+	    </div>
+	  </div>
+	</div>
+
+	<div class="heater entry">
+	  <img src="flame.png" />
+	  <div class="name">Heater</div>
+	  <div class="led led0">
+	    <div class="label">OFF</div>
+	    <div class="imageSwitchable">
+	      <img class="image lit" src="on-red.png">
+	      <img class="image on unlit" src="off.png">
+	    </div>
+	  </div>
+	  <div class="led led1">
+	    <div class="label">ENABLED</div>
+	    <div class="imageSwitchable">
+	      <img class="image lit" src="on-green.png">
+	      <img class="image on unlit" src="off.png">
+	    </div>
+	  </div>
+	  <div class="led led-flame non-exclusive non-clickable">
+	    <div class="label">HEATING</div>
+	    <div class="imageSwitchable">
+	      <img src="flame-on.png" class="image lit" />
+	      <img src="flame.png" class="image on unlit" />
+	    </div>
+	  </div>
+	  <div class="settings"><a onClick="document.getElementById('settings-heater').showModal()"><img src="gear.png" /></a></div>	  	  
+	</div>
+
+	<div class="thermometer thermometer0 entry">
+	  <img src="thermometer.png" />
+	  <div class="name">Temp</div>
+	  <div class="degreeContainer">
+	    <div class="degrees"></div>
+	    <div class="dsym">&deg;</div>
+	  </div>
+	  <div class="settings"><a onClick="document.getElementById('settings-temp').showModal()"><img src="gear.png" /></a></div>
+	</div>
+
+	<div class="light entry">
+	  <img src="bulb.png" />
+	  <div class="name">Light</div>
+	  <div class="led led0">
+	    <div class="label">OFF</div>
+	    <div class="imageSwitchable">
+	      <img class="image lit" src="on-red.png">
+	      <img class="image on unlit" src="off.png">
+	    </div>
+	  </div>
+	  <div class="led led1">
+	    <div class="label">ON</div>
+	    <div class="imageSwitchable">
+	      <img class="image lit" src="on-green.png">
+	      <img class="image on unlit" src="off.png">
+	    </div>
+	  </div>
+	</div>
+
+	<div class="progress">
+	</div>
+	
+      </div>
+    </div>
+
+    <dialog id="settings-v0">
+      <div class="dialog-container">
+	<div class="title-bar">
+	  <img src="valve.png" />
+	  <div class="name">Drain</div>
+	</div>
+	<div class="body">
+	  <label>Position
+	    <input class="valve-slider" type="range" id="v0-slider" min="0" max="180" value="50" step="10">
+	  </label>
+	  
+	</div>
+	<div class="bottom" onClick="document.getElementById('settings-v0').close()">
+	  &#10006;&nbsp;&nbsp;&nbsp;Close
+	</div>
+      </div>
+    </dialog>
+
+    <dialog id="settings-v1">
+      <div class="dialog-container">
+	<div class="title-bar">
+	  <img src="valve.png" />
+	  <div class="name">Return</div>
+	</div>
+	<div class="body">
+	</div>
+	<div class="bottom" onClick="document.getElementById('settings-v1').close()">
+	  &#10006;&nbsp;&nbsp;&nbsp;Close
+	</div>
+      </div>
+    </dialog>
+
+    <dialog id="settings-heater">
+      <div class="dialog-container">
+	<div class="title-bar">
+	  <img src="flame.png" />
+	  <div class="name">Heater</div>
+	</div>
+	<div class="body">
+	</div>
+	<div class="bottom" onClick="document.getElementById('settings-heater').close()">
+	  &#10006;&nbsp;&nbsp;&nbsp;Close
+	</div>
+      </div>
+    </dialog>
+
+    <dialog id="settings-temp">
+      <div class="dialog-container">
+	<div class="title-bar">
+	  <img src="thermometer.png" />
+	  <div class="name">Temp</div>
+	</div>
+	<div class="body tempSetPoint">
+	  <div class="left">
+	    <div class="therm">
+	      <div class="slider"><input type="range" min="50" max="110" step="1" /></div>
+	      <div class="outline"><img src="therm-outline.png" /></div>
+	    </div>
+	    <div class="ticks">
+	      <div class="tick"></div>
+	      <div class="tick"></div>
+	      <div class="tick"></div>
+	      <div class="tick"></div>
+	      <div class="tick"></div>
+	      <div class="tick"></div>
+	      <div class="tick"></div>
+	    </div>
+	    <div class="tick-labelss">
+	      <div class="tick-label">110</div>
+	      <div class="tick-label">100</div>
+	      <div class="tick-label">90</div>
+	      <div class="tick-label">80</div>
+	      <div class="tick-label">70</div>
+	      <div class="tick-label">60</div>
+	      <div class="tick-label">50</div>
+	    </div>
+	  </div>
+	  <div class="right">
+	    <div class="title">
+	      Heat<br>Set Point
+	    </div>
+	    <div class="temp">
+	      <input class="tempDisplay" type="number" min="35" max="110" />
+	    </div>
+	    <div class="updowns">
+	      <div class="down">&#9660 </div>
+	      <div class="up">&#9650</div>
+	    </div>
+	    
+	  </div>
+	  
+	</div>
+	<div class="bottom" onClick="document.getElementById('settings-temp').close()">
+	  &#10006;&nbsp;&nbsp;&nbsp;Close
+	</div>
+      </div>
+    </dialog>
+
+</body>
+</html>

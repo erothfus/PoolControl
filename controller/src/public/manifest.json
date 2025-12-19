@@ -1,0 +1,27 @@
+{
+    "name": "Paul's Pool",
+    "short_name": "Pool",
+    "icons": [
+        {
+	    "src": "redfoot-foot-192.png",
+	    "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+	    "src": "redfoot-foot-256.png",
+	    "sizes": "256x256",
+            "type": "image/png"
+        }
+    ],
+    "shortcuts": [
+	{
+	    "name": "Home Page",
+	    "url": "/index.html"
+	},
+	{
+	    "name": "Settings",
+	    "url": "/settings"
+	}
+    ],
+    "display": "fullscreen"
+}
