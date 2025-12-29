@@ -10,6 +10,7 @@ body {
     min-height: 100vh;
     width: 100vw;
     margin: 0;
+    overflow: hidden;
 }
 
 /* hide ALL <a> text decorations */
@@ -239,6 +240,11 @@ a:visited {
     background-color: #033b60;
 }
 
+#settings-v0, #settings-v1 {
+    width: 800px !IMPORTANT;
+    height: 800px !IMPORTANT;
+}
+
 #settings-temp {
     width: 500px !IMPORTANT;
     height: 800px !IMPORTANT;
@@ -424,18 +430,80 @@ dialog:focus, dialog:focus-within, dialog:focus-visible, dialog:active {
     outline: none;
     border: none;
 }
-
-.valve-slider {
-    margin-top: 20px;
-    width: 20%;
-    height: 40px;
-    transform-origin: left;
-    transform: scale(3);
+.valve-dialog .slider-div {
+    display: flex;
+    flex-flow: column nowrap;
+    flex-grow: 1;
 }
 
-.valve-slider:focus {
+.valve-dialog .slider-div .slider-ticks {
+    display: flex;
+    flex-flow: row nowrap;
+    height: 20px;
+    width: calc(100% - 10px);
+    padding-left: 45px;
+    margin-top: 10px;
+}
+
+.valve-dialog .slider-div .slider-ticks.numbers {
+    padding-left: 40px;
+    height: 25px;
+}
+    
+.valve-dialog .slider-div .slider-ticks .tick {
+    border-left: 5px solid grey;
+    width: 120px;
+    height: 100%;
+}
+.valve-dialog .slider-div .slider-ticks .number {
+    width: 120px;
+    height: 100%;
+    font-family: sans-serif;
+    color: black;
+    font-size: 22px;
+}
+
+.valve-dialog .slider-div .slider-ticks .tick.last,
+.valve-dialog .slider-div .slider-ticks .number.last {
+    width: 10px;
+}
+
+.valve-dialog .body .slider:focus {
     outline: none;
 }
+.valve-dialog .body .slider {
+    margin-top: 20px;
+    width: calc(100% / 6 - 10px);
+    height: 40px;
+    transform-origin: left;
+    transform: scale(6);
+}
+
+.valve-dialog .body {
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+.valve-dialog .body .position {
+    margin-top: 20px;
+    display: flex;
+    flex-flow: row nowrap;
+}
+.valve-dialog .body .sep {
+    margin: 40px;
+    height: 10px;
+    width: calc(100% - 120px);
+    border-top: 10px solid blue;
+}
+
+.valve-dialog .body .slider-label {
+    font-family: sans-serif;
+    color: black;
+    font-size: 30px;
+    text-align: center;
+    margin: 20px;
+}
+
 
 /* dialog backdrop settings */
 ::backdrop {
@@ -513,8 +581,26 @@ dialog:focus, dialog:focus-within, dialog:focus-visible, dialog:active {
     position: relative;
 }
 
-.controller .selection:active {
+.controller .selection:active, .controller .selection.on  {
     background-color: green;
+}
+
+.controller .selection.custom {
+    margin-top: 10px;
+    color: red;
+    font-size: 50px;
+    font-weight: bold;
+    font-family: sans-serif;
+    background-color: transparent;
+    width: auto;
+    border: none;
+    height: auto;
+    padding: 10px;
+    visibility: hidden;
+}
+
+.controller .selection.custom.on {
+    visibility: visible;
 }
 
 .controller .selection .infoBox {
@@ -562,3 +648,40 @@ dialog:focus, dialog:focus-within, dialog:focus-visible, dialog:active {
     height: 100%;
     width: 100%;
 }
+
+#light-control {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-around;
+    padding: 20px;
+    border: 10px solid #eeeeee;
+    border-radius: 20px;
+    background-color: black;
+}
+
+#light-control .title {
+    font-family: sans-serif;
+    color: white;
+    font-size: 60px;
+    box-sizing: border-box;
+}
+
+#light-control .icon {
+    position: relative;
+    margin-left: 10px;
+}
+#light-control .icon .image {
+    position: relative;
+    top: 0;
+    width: 80px;
+    height: auto;
+    display: none;
+}
+
+#light-control .icon .image.on {
+    display: block;
+}
+
+
+
+    

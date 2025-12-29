@@ -5,6 +5,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" type="text/css" href="styles.css">
     <script src="bubbles.js" defer></script>
+    <script src="modePage.js" defer></script>
   </head>
   <body>
     <div class="header">
@@ -17,28 +18,39 @@
 	<div class="title">SPA</div>
 	<div class="icon"><img src="hot-tub.png"></div>
       </div>
-      <div class="selection a">
+      <div class="selection spaClean">
 	<div class="infoBox"><span>&#9432;</span></div>
 	<div class="title">CLEAN</div>
 	<div class="icon"><img src="spa-clean.png"></div>
       </div>
-      <div class="selection b">
+      <div class="selection high">
 	<div class="title">HI FILTER</div>
 	<div class="icon"><img src="filter.png"></div>
       </div>
-      <div class="selection c">
+      <div class="selection low">
 	<div class="title">LO FILTER</div>
 	<div class="icon"><img src="zzz.png"></div>
       </div>
-      <div class="selection d">
+      <div class="selection warmPool">
 	<div class="title">WARM POOL</div>
 	<div class="icon"><img src="warm-pool.png"></div>
       </div>
-      <div class="selection e">
+      <div class="selection allOff">
 	<div class="title">ALL OFF</div>
 	<div class="icon"><img src="stop.png"></div>
       </div>
+      <div class="selection custom">
+	- Custom settings in use! -
+      </div>
     </div>
+    <div id="light-control">
+      <dev class="title">Light</dev>
+      <dev class="icon">
+	<img src="light-100-on.png" class="image lit" />
+	<img src="light-100-off.png" class="image unlit on" />
+      </dev>
+    </div>
+    
     <canvas id="bubbleCanvas"></canvas>
     
   </body>

@@ -147,16 +147,34 @@
       </div>
     </div>
 
-    <dialog id="settings-v0">
+    <dialog id="settings-v0" class="valve-dialog">
       <div class="dialog-container">
 	<div class="title-bar">
 	  <img src="valve.png" />
 	  <div class="name">Drain</div>
 	</div>
 	<div class="body">
-	  <label>Position
-	    <input class="valve-slider" type="range" id="v0-slider" min="0" max="180" value="50" step="10">
-	  </label>
+	  <div class="position">
+	    <div class="slider-label">Set<br>Position</div>
+	    <div class="slider-div">
+	      <input class="slider" type="range" id="v0-slider" min="0" max="180" value="90" step="45">
+	      <div class="slider-ticks">
+		<div class="tick"></div>
+		<div class="tick"></div>
+		<div class="tick"></div>
+		<div class="tick"></div>
+		<div class="tick last"></div>
+	      </div>
+	      <div class="slider-ticks numbers">
+		<div class="number">0</div>
+		<div class="number">45</div>
+		<div class="number">90</div>
+		<div class="number">135</div>
+		<div class="number last">180</div>
+	      </div>
+	    </div>
+	  </div>
+	  <div class="sep"></div>
 	  
 	</div>
 	<div class="bottom" onClick="document.getElementById('settings-v0').close()">
