@@ -7,6 +7,7 @@ const Pump = require('./pumpControl');
 const Heater = require('./heaterControl');
 const Light = require('./lightControl');
 const Arduino = require('./arduino');
+const Modes = require('./modeControl');
 
 // need to read configuration here to create the valves
 global.Valves = [
@@ -31,12 +32,22 @@ global.Lights = [
     /* light 0 */ new Light(0),
 ];
 
+global.ModeControl = Modes;
+
 // the LCD manages itself, mostly
 
 LCD.init(busNum);
 
 async function main() {
     global.Arduino = await Arduino;
+
+    ModeControl.setMode('allOff')
+	.then(() => console.log("allOff executed"))
+	.then(() => ModeControl.getSettings())
+	.then((settings) => console.log("Settings",settings))
+	.then(() => ModeControl.findMode())
+	.then((mode) => console.log("Mode is",mode));
+    
 }
 
 main();

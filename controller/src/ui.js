@@ -37,6 +37,24 @@ const thermAPI = express();  app.use('/api/therm',thermAPI);
 const pumpAPI = express();   app.use('/api/pump',pumpAPI);
 const heaterAPI = express(); app.use('/api/heater',heaterAPI);
 const lightAPI = express();  app.use('/api/light',lightAPI);
+const modeAPI = express();   app.use('/api/mode',modeAPI);
+
+modeAPI.get('/set/:mode',(req,res) => {
+    ModeControl.setMode(req.params.mode)
+	    .then((data) => { console.log(data); return(data); })
+	    .then((data) => JSON.stringify(data))
+	    .then((json) => res.send(json));
+});
+
+//
+// /api/mode/check - returns the mode along with all of the settings
+//        
+modeAPI.get('/check',(req,res) => {
+    ModeControl.findMode()
+	    .then((data) => { console.log(data); return(data); })
+	    .then((data) => JSON.stringify(data))
+	    .then((json) => res.send(json));
+});
 
 lightAPI.get('/:light/status', (req,res) => {
     if(req.params.light >= Lights.length) {
