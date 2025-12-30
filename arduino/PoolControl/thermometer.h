@@ -10,8 +10,9 @@
 #define READINGS_FOR_AVERAGE	20
 
 #include <Arduino.h>
+#include "eeprom.h"
 
-class Thermometer {
+class Thermometer : protected EEPROM_CONTROL {
 
 public:
 
@@ -25,8 +26,7 @@ public:
   //   constants used for termister temp translation
   
   void config(float,float,float);
-
-  void factoryReset(void);
+  void loadConfig(void);
   
 private:
   int myPin;

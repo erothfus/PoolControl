@@ -9,52 +9,52 @@
 //
 #include <Arduino.h>
 #include "thermometer.h"
-#include <EEPROM.h>
 
 //
 // Thermometer() - simply configure the pin and the default
 //    factors.
 //
-Thermometer::Thermometer(int pin, int kohms, int eepromAddress)
+Thermometer::Thermometer(int pin, int kohms, int eepromAddress) : EEPROM_CONTROL(eepromAddress)
 {
   myPin = pin;
   myResistor = (float)kohms * 1000.0;	// used during reading as a float -
                                         //   so go ahead and set it as such
-  myAddress = eepromAddress;
-  
-  // load up some constants to make future processing easier
-  //   These should really be static...
-  
-  c1 = 1.009249522e-03;
-  c2 = 2.378405444e-04;
-  c3 = 2.019202697e-07;
+
+  if(!eepromHasBeenSet()) {
+    // set the defaults if none have been written to eeprom
+    config( 1.009249522e-03, 2.378405444e-04, 2.019202697e-07);
+  } else {
+    // otherwise load them from eeprom
+    loadConfig();
+  }
 
   // set up for reading averaging
   readingPointer = -1;
 }
 
 //
-// factoryReset() - sets-up the default configuration, also writing it
-//    into the EEPROM.
+// loadConfig() - load the default constants from EEPROM. This will happen
+//   upon the first arduino load, or after a "factorReset".
 //
-void Thermometer::factoryReset()
+void Thermometer::loadConfig()
 {
-  config(
-	 1.009249522e-03,
-	 2.378405444e-04,
-	 2.019202697e-07
-	 );
-}
+  int offset = 0;
 
+  offset += eepromRead(offset,&c1);
+  offset += eepromRead(offset,&c2);
+  offset += eepromRead(offset,&c3);
+}  
 void Thermometer::config(float con1, float con2, float con3)
 {
+  int offset = 0;
+  
   c1 = con1;
   c2 = con2;
   c3 = con3;
 
-  EEPROM.put(myAddress,c1);
-  EEPROM.put(myAddress+sizeof(c1),c2);
-  EEPROM.put(myAddress+sizeof(c2),c3);
+  offset += eepromWrite(offset,c1);
+  offset += eepromWrite(offset,c2);
+  offset += eepromWrite(offset,c3);
 }
 
 //
