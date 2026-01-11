@@ -184,7 +184,10 @@ valveAPI.get('/:valve/move/:degrees',(req,res) => {
     if(req.params.valve >= Valves.length) {
 	res.send(`ERROR - valve ${req.params.valve} unknown`);
     } else {
-	res.send(Valves[req.params.valve].move(req.params.degrees));
+	Valves[req.params.valve].move(req.params.degrees)
+//	    .then((data) => { console.log(data); return(data); })
+	    .then((data) => JSON.stringify(data))
+	    .then((json) => res.send(json));
     }
 });
     
