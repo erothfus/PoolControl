@@ -2,6 +2,7 @@
   "dependencies": {
     "express": "^5.1.0",
     "i2c-bus": "^5.2.3",
-    "raspberrypi-liquid-crystal-simple": "^1.13.0"
+    "raspberrypi-liquid-crystal-simple": "^1.13.0",
+    "sass": "^1.97.1"
   }
 }
