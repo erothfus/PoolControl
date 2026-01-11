@@ -58,8 +58,8 @@ enum class ValveStates {
   MOVE_LIMIT_HIGH3 = 232,
   MOVE_LIMIT_HIGH_DONE = 233,
 
-  MOVE_TARGET = 260,		// beginning state for a move to position
-  MOVE_TARGET_DONE = 261
+  MOVE_TARGET = 210,		// beginning state for a move to position
+  MOVE_TARGET_DONE = 211
 
 };
 
