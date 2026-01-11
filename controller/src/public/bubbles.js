@@ -4,12 +4,17 @@ const context = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+const maxRadius = 30;       // max bubble radius
+const minSecsTween = 2;     // minimum time between bubbles
+const maxSecsTween = 8;    // maximum time between bubbles
+
+
 var particleArray = [];
 class Particle {
 	constructor(x = 0, y = 0) {
 	    this.x = x;
 	    this.y = y;
-	    this.radius = Math.random() * 50;
+	    this.radius = Math.random() * maxRadius;
 	    this.dx = 0;
 	    this.dy = Math.random() * 3 + 2;
 	    this.hue = 200;
@@ -70,7 +75,7 @@ animate();
 function randomBubble()
 {
     var position = Math.random() * window.innerWidth;
-    var newTimeout = (Math.random() * 7 + 4) * 1000;
+    var newTimeout = (Math.random() * (maxSecsTween - minSecsTween) + minSecsTween) * 1000;
 
 //    console.log("Random Bubble",position,newTimeout);
     handleDrawCircle(position);
