@@ -55,7 +55,7 @@ void setup()
   //                deg  deg
   //                ---  ---
   valve[0].config(  0,  180  );
-  valve[1].config(  90, 180  );
+  valve[1].config(  0,  180  );
 
   // set-up the control system through I2C. It needs to have access
   //   to the control "surface" so pass it arrays of valves and
