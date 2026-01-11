@@ -303,17 +303,17 @@ void Valve::calibrationLoop()
     break;
 
   case ValveStates::CALIBRATE_START2:
-    relayControl(pinDIR,DIR_NEGATIVE);		// run negative for 1 second
+    relayControl(pinDIR,DIR_NEGATIVE);		// run negative for 3 seconds
     relayControl(pinON,RELAY_ON);
     Serial.println("one second negative");
-    stateSwitch(ValveStates::CALIBRATE_START3,1000000UL);
+    stateSwitch(ValveStates::CALIBRATE_START3,3000000UL);
     break;
 
   case ValveStates::CALIBRATE_START3:
     relayControl(pinDIR,DIR_POSITIVE);
-    relayControl(pinON,RELAY_ON);		// run positive for 1 second
+    relayControl(pinON,RELAY_ON);		// run positive for 3 second
     Serial.println("one second positive");
-    stateSwitch(ValveStates::CALIBRATE_START4,1000000UL);
+    stateSwitch(ValveStates::CALIBRATE_START4,3000000UL);
     break;
 
   case ValveStates::CALIBRATE_START4:
