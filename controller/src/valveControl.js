@@ -34,8 +34,10 @@ module.exports = class {
 	var command = 0x50 + this.valveNum;
 
 	var sendArray =  [degrees>>8,degrees&0xff];
-	Arduino.writeBytes(command,sendArray.length,sendArray);
-	return('OK - moving to ' + degrees);
+	return(
+	    Arduino.writeBytes(command,sendArray.length,sendArray)
+		.then(() => ({status:'ok'}))
+	);
     }
 	
 
