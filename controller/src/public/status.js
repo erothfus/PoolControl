@@ -19,6 +19,21 @@ function valveStatusGet(valve)
     );
 }
 
+function valveTravelGet(valve)
+{
+    return(
+	fetch(`/api/valve/${valve}/travel`)
+	    .then((response)=> {
+		if(!response.ok) {
+		    throw new Error(`HTTP error. Status: ${response.status}`);
+		}
+		return response.json();
+	    })
+//	    .then((data) => { console.log(data); return(data); })
+    );
+}
+    
+
 function valveStatusDisplay(valve,data)
 {
     var target = document.querySelector(`.valve.v${valve} .degrees`);
@@ -353,7 +368,147 @@ function tempSetPoint()
 	    })
 	});
 }
+
+//
+// valveDisplaySliderPosition() - show the given position on the given
+//     valve slider.
+//
+function valveDisplaySliderPosition(valve,value)
+{
+    var slider = document.querySelector(`#v${valve}-slider`);
+    if(slider) {
+	slider.value = value;
+    }
+}
     
+
+//
+// valveSetPosition() - used to put the valve in a known position. The
+//    code is currently locked at 0 to 180, although it would be nice
+//    to have that settable.
+//
+function valveSetPosition(valve)
+{
+    // get the status of the valve so that the position can be 
+    // set-up the slider to control the particular valve
+
+    var slider = document.querySelector(`#v${valve}-slider`);
+    if(slider) {
+	slider.addEventListener('change',(event) => valveMove(valve,slider.value))
+    }
+
+    // when the dialog is up, the position status of the 
+}
+
+//
+// valveDialogPopup() - called to pop-up the given valve's dialog for
+//    control/config.
+//
+function valveDialogPopup(valve)
+{
+    // show the dialog right away
+    var dialog = document.getElementById(`settings-v${valve}`);
+    dialog.showModal();
+
+    // this sub-function updates the controls with the current valve
+    //   status data. It schedules itself to be called if the dialog
+    //   is still displayed.
+    function updateDisplay()
+    {
+	valveStatusGet(valve)
+	    .then((status) => {
+		valveDisplaySliderPosition(valve,status.position);
+		valveDisplayStateMachineCodes(valve,status);
+	    })
+
+	    .then(() => valveTravelGet(valve))
+	    .then((travel) => valveDisplayValveTravel(valve,travel))
+
+	    .then(() => {
+		if(dialog.open) {
+		    setTimeout(updateDisplay,3000);
+		}
+	    });
+    }
+
+    updateDisplay();
+}
+
+//
+// valveDisplayStateMachineCodes() - display the status codes on the popup display.
+//
+function valveDisplayStateMachineCodes(valve,status)
+{
+    var dialog = document.getElementById(`settings-v${valve}`);
+    
+    var currentElement = dialog.querySelector('.valveStateDisplay .current');
+    currentElement.querySelector('.code').textContent = status.state;
+    currentElement.querySelector('.descr').textContent = valveStateMachine[status.state];
+
+    var prevElement = dialog.querySelector('.valveStateDisplay .prev');
+    prevElement.querySelector('.code').textContent = status.prev;
+    prevElement.querySelector('.descr').textContent = valveStateMachine[status.prev];
+
+    
+    console.log("Status",status);
+}
+
+//
+// valveDisplayValveTravel() - given a valve and travel objecct, display it on the
+//   status display in the "appropriate" place.
+//
+function valveDisplayValveTravel(valve,travel)
+{
+    var dialog = document.getElementById(`settings-v${valve}`);
+
+    var element;
+
+    element = dialog.querySelector('.calibrationStatus .clockwise');
+    element.querySelector('.value').textContent = (Number(travel.pos)/10).toFixed(2);
+
+    element = dialog.querySelector('.calibrationStatus .counterclockwise');
+    element.querySelector('.value').textContent = (Number(travel.neg)/10).toFixed(2);
+}
+
+function valveInitiateCalibrationRequest(valve)
+{
+    if(confirm("Are you sure you want to calibrate?")) {
+	valveInitiateCalibration(valve);
+    }
+}
+
+function valveMove(valve,value)
+{
+    return(
+	fetch(`/api/valve/${valve}/move/${value}`)
+	    .then((response)=> {
+		if(!response.ok) {
+		    throw new Error(`HTTP error. Status: ${response.status}`);
+		}
+		return response.json();
+	    })
+	    .then((status) => valveDisplayStateMachineCodes(valve,status))
+//	    .then((data) => { console.log(data); return(data); })
+    );
+}
+
+function valveInitiateCalibration(valve)
+{
+    return(
+	fetch(`/api/valve/${valve}/calibrate`)
+	    .then((response)=> {
+		if(!response.ok) {
+		    throw new Error(`HTTP error. Status: ${response.status}`);
+		}
+		return response.json();
+	    })
+//	    .then((data) => { console.log(data); return(data); })
+    );
+}
+
+valveSetPosition(0);
+valveSetPosition(1);
+
 tempSetPoint();
 
 ledCallbacks();
