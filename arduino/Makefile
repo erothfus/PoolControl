@@ -26,6 +26,9 @@ monitor:
 compile:
 	$(CLI) compile --fqbn $(FQBN) $(SKETCH)
 
+clean:
+	$(CLI) cache clean
+
 upload:
 	$(CLI) $(LEVEL) upload -p $(PORT) --fqbn $(FQBN) $(SKETCH)
 
