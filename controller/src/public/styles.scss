@@ -1,0 +1,828 @@
+//
+// Pool Controller - all styles - converted to scss
+//
+//   Nice pooly background. :-)
+
+body {
+    /*    background-image: url('/at9k_5tgc_230302.jpg'); */
+    background-image: linear-gradient(to top,#012d4e,#0a7dbc);
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    min-height: 100vh;
+    width: 100vw;
+    margin: 0;
+    overflow: hidden;
+    max-width: 600px;
+}
+
+/* hide ALL <a> text decorations */
+
+a {
+    text-decoration: none;
+}
+
+a:visited {
+    color: inherit;
+}
+
+// for apple safari - make sliders with diff color
+
+input[type="range"]::-webkit-slider-thumb {
+  background: #0d8cfd;
+  border: 1px solid #0d8cfd;
+  border-radius: 50%;
+}
+
+#bubbleCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+}
+
+/* standard header for all pages */
+
+.header {
+    box-sizing: border-box;
+    background-color: #012d4e;
+    width: 100%;
+    padding-left: 10px;
+    padding-right: 10px;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+
+    .title {
+	padding-top: 10px;
+	padding-bottom: 10px;
+    }
+
+    .title, .settings {
+	font-family: sans-serif;
+	color: white;
+	font-size: 30px;
+	font-weight: bold;
+    }
+}
+
+.settingsPage {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+
+    .title {
+	font-family: sans-serif;
+	color: white;
+	font-size: 20px;
+	font-weight: bold;
+	margin-top: 10px;
+	margin-bottom: 10px;
+    }
+
+    .status {
+	margin-left: 5%;
+	margin-right: 5%;
+	box-sizing: border-box;
+	border: 5px solid white;
+	border-radius: 10px;
+	border-color: #c0ccff;
+	min-width: 90%;
+	max-width: 90%;
+	padding: 0px 10px 5px 10px;
+
+	.title {
+	    font-family: sans-serif;
+	    color: white;
+	    font-size: 15px;
+	}
+
+	.entry {
+	    background-color: rgba(255,255,255,.1);
+	    padding-bottom: 5px;
+	    padding-top: 5px;
+	}
+
+	.valve,	.pump, .heater, .thermometer, .light {
+	    width: 100%;
+	    display: flex;
+	    flex-flow: row nowrap;
+	    margin-bottom: 10px;
+	}
+
+	.valve .settings, .pump .settings, .heater .settings,
+	.thermometer .settings, .light .settings {
+	    flex-grow: 1;
+	    display: flex;
+	    flex-flow: row nowrap;
+	    justify-content: flex-end;
+	    padding-right: 10px;
+	    align-items: center;
+	}
+
+	.valve .name, .pump .name, .heater .name, .thermometer .name, .light .name {
+	    font-family: sans-serif;
+	    color: white;
+	    font-size: 20px;
+	    position: relative;
+	    top: 12px;
+	    margin-left: 10px;
+	}
+
+	.degreeContainer {
+	    width: 40px;
+	    height: 22px;
+	    display: flex;
+	    flex-flow: row nowrap;
+	    padding: 0px 10px 10px 10px;
+	    background-color: white;
+	    margin-left: 20px;
+	    justify-content: center;
+	    margin-top: 5px;
+	    border-radius: 30px;
+	    position: relative;
+	    
+	    .degrees {
+		font-family: sans-serif;
+		color: green;
+		font-size: 20px;
+		font-weight: bold;
+		position: relative;
+		top: 5px;
+	    }
+	    .dsym {
+		font-family: sans-serif;
+		color: green;
+		font-size: 20px;
+		font-weight: bold;
+		position: relative;
+		top: 5px;
+	    }
+	}
+
+	.progress {
+	    box-sizing: border-box;
+	    height: 5px;
+	    width: 0%;
+	    border: 1px solid black;
+	    background-color: #55aaff;
+	    animation: pulse-width 5s infinite;
+	    animation-timing-function: linear;
+	    animation-delay: 500ms;
+	}
+
+	.valve > img, {
+	    width: 30px;
+	    object-fit: contain;
+	    margin-left: 5px;
+	}
+	.pump > img {
+	    width: 30px;
+	    object-fit: contain;
+	    margin-left: 5px;
+	}
+
+	.heater > img {
+	    width: 20px;
+	    margin-left: 10px;
+	    margin-right: 6px;
+	    object-fit: contain;
+	}
+	.thermometer > img {
+	    width: 15px;
+	    margin-left: 15px;
+	    margin-right: 5px;
+	    object-fit: contain;
+	}
+	.light > img {
+	    width: 30px;
+	    margin-left: 5px;
+	    margin-right: 5px;
+	    object-fit: contain;
+	}
+
+	// the gear icon for certain resource settings 
+	.valve .settings a img, .thermometer .settings a img {
+	    font-family: sans-serif;
+	    color: white;
+	    width: 30px;
+	}
+	
+    }
+    /* leds for on/off indicators - note that the structure of the
+   html for the leds is very specific - messing around will break
+   all of this - that's what happens when the javascript is
+   disconnected from the definition - in other words, GENERATING
+   the LEDS with javascript would make the code less rickety
+   */
+
+    .led {
+	display: flex;
+	flex-flow: column nowrap;
+	align-items: center;
+	margin-left: 20px;
+	padding-bottom: 10px;
+
+	.label {
+	    font-family: sans-serif;
+	    color: white;
+	    font-size: 11px;
+	    margin-bottom: 5px;
+	}
+
+	.imageSwitchable {
+	    height: 25px;
+	    width: 25px;
+
+	    .image {
+		height: 100%;
+		width: 100%;
+		display: none;
+
+		&.on {
+		    display: block;
+		}
+	    }
+	}
+    }
+
+    // special case the flame for the heater just a bit
+    .heater.entry .led-flame .imageSwitchable img {
+	width: 20px;
+	object-fit: contain;
+    }
+    
+}
+
+//
+// We go after the dialogs directly, since they have id's
+//   why? who knows...
+//
+#settings-v0 .dialog-container .title-bar img,
+#settings-v1 .dialog-container .title-bar img
+{
+    width: 30px;
+    object-fit: contain;
+}
+#settings-p0 .dialog-container .title-bar img,
+#settings-p1 .dialog-container .title-bar img
+{
+    width: 40px;
+    object-fit: contain;
+}
+
+// the .dialog-container is common for all dialogs, so the
+//   basics are defined here
+
+.dialog-container {
+    box-sizing: border-box;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
+
+    .title-bar {
+	width: 100%;
+	height: 50px;
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+
+	.name {
+	    font-family: sans-serif;
+	    color: white;
+	    font-size: 30px;
+	    position: relative;
+	    top: 5px;
+	    margin-left: 15px;
+	}
+    }
+
+    .body {
+	background-color: white;
+	flex-grow: 1;
+	overflow:hidden;
+    }
+    
+    .bottom {
+	cursor: pointer;
+	width: 100%;
+	height: 30px;
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+	font-family: sans-serif;
+	color: white;
+	font-size: 18px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+    }
+
+    // other general purpose definitions go here
+    .body {
+	.slider:focus {
+	    outline: none;
+	}
+    }
+
+    // the valve pop-up container
+    &.valve {
+
+	.body {
+	    display: flex;
+	    flex-flow: column nowrap;
+
+	    .position {
+		margin-top: 20px;
+		display: flex;
+		flex-flow: row nowrap;
+		position: relative;
+
+		.slider-label {
+		    font-family: sans-serif;
+		    color: black;
+		    font-size: 15px;
+		    text-align: center;
+		    margin: 5px;
+		    position: relative;
+		    top: 15px;
+		}
+
+		.slider-div {
+		    display: flex;
+		    flex-flow: column nowrap;
+		    flex-grow: 1;
+
+		    .slider {
+			margin-top: 20px;
+			width: calc(100% / 2 - 10px);
+			height: 40px;
+			transform-origin: left;
+			transform: scale(2);
+		    }
+		    
+		    .slider-ticks {
+			display: flex;
+			flex-flow: row nowrap;
+			height: 20px;
+			width: calc(100% - 10px);
+			padding-left: 15px;
+
+			&.numbers {
+			    padding-left: 10px;
+			    height: 25px;
+			}
+
+//			$tick-spacing:calc(100% / 4.3);
+			$tick-spacing:calc((100% + 10px) / 5);
+			
+			.tick {
+			    border-left: 3px solid grey;
+			    width: $tick-spacing;
+			    height: 100%;
+			}
+			.number {
+			    width: $tick-spacing;
+			    height: 100%;
+			    font-family: sans-serif;
+			    color: black;
+			    font-size: 14px;
+			}
+
+			.tick.last, .number.last {
+			    width: 10px;
+			}
+		    }
+		}
+	    }
+
+	    .valveStateDisplay {
+		box-sizing: border-box;
+		width: 95%;
+		margin-top: 10px;
+		margin-left: 2.5%;
+		padding: 5px 5px 5px 15px;
+		background-color: #eee;
+		border-radius: 10px;
+
+		.stateMachine {
+		    width: 100%;
+		    .state {
+			display: flex;
+			flex-flow: row nowrap;
+			align-items: baseline;
+			font-family: sans-serif;
+			font-size: 12px;
+
+			.icon {
+			    font-size: 14px;
+			    color: blue;
+			    margin-right: 8px;
+			    width: 12px;
+			}
+			
+			.descr {
+			    margin-left: 8px;
+			    flex-grow: 1;
+			}
+		    }
+		}
+		.calibrationStatus {
+		    width: 100%;
+		    .direction {
+			display: flex;
+			flex-flow: row nowrap;
+			align-items: baseline;
+			font-family: sans-serif;
+			font-size: 12px;
+
+			.icon {
+			    font-size: 14px;
+			    color: blue;
+			    margin-right: 8px;
+			}
+			.value {
+			    margin-right: 8px;
+			}
+			.units {
+			    font-size: 10px;
+			}
+		    }			
+		}
+	    }
+
+	    .calibrate {
+		margin-top: 30px;
+		display: flex;
+		flex-flow: column nowrap;
+		justify-content: center;
+		align-items: center;
+		width: 100%;
+		position: relative;
+
+		.button {
+		    width: 100px;
+		    border: 3px solid black;
+		    font-family: sans-serif;
+		    font-size: 18px;
+		    color: black;
+		    text-align: center;
+		    padding: 10px;
+		    background-color: #ffdddd;
+		    box-shadow: 5px 5px 10px 3px rgba(0,0,0,0.5);
+		    border-radius: 5px;
+		    position: relative;
+		    cursor: pointer;
+		}
+
+		.button:active {
+		    box-shadow: none;
+		    top: 5px;
+		    left: 5px;
+		}
+
+		.warning {
+		    margin-top: 10px;
+		    font-family: sans-serif;
+		    font-size: 13px;
+		    font-style: italic;
+		    color: red;
+		}
+		
+	    }
+	    .sep {
+		margin: 40px;
+		height: 10px;
+		width: calc(100% - 120px);
+		border-top: 10px solid blue;
+	    }
+	}
+    }
+
+    // the temperature pop-up container
+    &.temp {
+	.title-bar img {
+	    width: 15px;
+	    margin-left: 30px;
+	    margin-right: 25px;
+	    object-fit: contain;
+	}
+    }
+}
+
+
+@keyframes pulse-width {
+    0% {
+	width: 0;
+    }
+    100% {
+	width: 100%;
+    }
+}
+
+// settings for the pop-up dialogs for valves and tempurature
+
+#settings-v0, #settings-v1, #settings-temp {
+    width: 500px;
+    height: 470px;
+    box-shadow: 15px 15px 20px 6px rgba(0,0,0,0.5);
+    border: none;
+    border-radius: 20px;
+    padding: 0px;
+    background-color: #033b60;
+}
+
+#settings-temp {
+    width: 500px !IMPORTANT;
+    height: 800px !IMPORTANT;
+}
+
+#settings-temp .body {
+    display: flex;
+}
+
+#settings-temp .body .left {
+    height: 100%;
+    position: relative;
+    margin-top: 10px;
+    margin-left: 20px;
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+#settings-temp .body .left .therm {
+    width: 90px;
+}
+
+#settings-temp .body .left .ticks {
+    display: flex;
+    flex-flow: column nowrap;
+    position: relative;
+}
+
+#settings-temp .body .left .tick-labels {
+    display: flex;
+    flex-flow: column nowrap;
+    position: relative;
+}
+
+#settings-temp .body .left .tick,
+#settings-temp .body .left .tick-label {
+    height: 66px;
+}
+
+#settings-temp .body .left .tick {
+    position: relative;
+    top: 30px;
+    width: 30px;
+    border-top: 5px solid black;
+    box-sizing: border-box;
+}
+#settings-temp .body .left .tick-label {
+    width: 55px;
+    position: relative;
+    top: 15px;
+    font-size: 30px;
+    font-family: sans-serif;
+    text-align: center;
+}
+
+#settings-temp .body .left input {
+    height: 100%;
+    transform: scale(3.3) rotate(-90deg);
+    accent-color: #0d8cfd;
+    transform-origin: right;
+    position: relative;
+    left: -75px;
+    top:10px;
+}
+
+#settings-temp .body .left .outline {
+    position: absolute;
+    top: 0px;
+    pointer-events: none;
+}
+
+#settings-temp .body .left .outline img {
+    height: 500px;
+    width: 110px;
+}
+
+#settings-temp .body .left .slider {
+    position: absolute;
+    top: 0px;
+}
+
+#settings-temp .body .left input:focus {
+    outline: none;
+    border: none;
+}
+
+#settings-temp .body .right {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+#settings-temp .body .right .title {
+    font-size: 40px;
+    font-family: sans-serif;
+    text-align: center;
+}
+
+#settings-temp .body .right input {
+    font-size: 80px;
+    font-family: sans-serif;
+    width: 140px;
+    text-align: center;
+}
+
+#settings-temp .body .right .updowns {
+    margin-top: 20px;
+    display: flex;
+}
+
+#settings-temp .body .right .updowns .up,
+#settings-temp .body .right .updowns .down {
+    font-size: 60px;
+    margin: 20px;
+    height: 80px;
+    width: 80px;
+    box-shadow: 15px 15px 20px 6px rgba(0,0,0,0.5);
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#settings-temp .body .right .updowns .up:active,
+#settings-temp .body .right .updowns .down:active {
+    box-shadow: 5px 5px 10px 6px rgba(0,0,0,0.5);
+}
+#settings-temp .body .right .updowns .up {
+    background-color: #ffaaaa;
+}
+#settings-temp .body .right .updowns .down {
+    background-color: #aaaaff;
+}
+
+
+/* get rid of any outline that messes things up! */
+
+dialog:focus, dialog:focus-within, dialog:focus-visible, dialog:active {
+    outline: none;
+    border: none;
+}
+
+
+/* dialog backdrop settings */
+::backdrop {
+    background-color: grey;
+    opacity: .7;
+    border: none;
+}
+
+
+/* main screen selections */
+
+.controller {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-evenly;
+}
+
+.controller .selection {
+    margin: 20px 10px 10px 10px;
+    aspect-ratio: 1;
+    width: 40%;
+    border: 8px solid #eeeeee;
+    border-radius: 10px;
+    background-color: black;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+}
+
+.controller .selection:active, .controller .selection.on  {
+    background-color: green;
+}
+
+.controller .selection.custom {
+    margin-top: 0px;
+    color: red;
+    font-size: 20px;
+    font-weight: bold;
+    font-family: sans-serif;
+    background-color: transparent;
+    height: 40px;
+    width: 100%;
+    border: none;
+    padding: 10px;
+    visibility: hidden;
+}
+
+.controller .selection.custom.on {
+    visibility: visible;
+}
+
+.controller .selection .infoBox {
+    position: absolute;
+    right: -5px;
+    top: -5px;
+    height: 30px;
+    width: 30px;
+    border-radius: 20px;
+    background-color: red;
+}
+
+.controller .selection .infoBox span {
+    position: relative;
+    top: 8px;
+    left: 7px;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.controller .selection .title {
+    font-family: sans-serif;
+    color: white;
+    font-size: 20px;
+    box-sizing: border-box;
+    height: 23%;
+    display: flex;
+    align-items: center;
+}
+
+.controller .selection .title .info {
+    margin-left: 20px;
+    font-size: 40px;
+    color:grey;
+}
+
+.controller .selection .icon {
+    height: 77%;
+    aspect-ratio: 1;
+    box-sizing: border-box;
+    padding: 10px;
+}
+
+.controller .selection .icon img {
+    box-sizing: border-box;
+    object-fit: contain;
+    height: 100%;
+    width: 100%;
+}
+
+#light-control {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px;
+    border: 8px solid #eeeeee;
+    border-radius: 10px;
+    background-color: black;
+    width: 30%;
+    height: auto;
+}
+
+#light-control .title {
+    font-family: sans-serif;
+    color: white;
+    font-size: 23px;
+    box-sizing: border-box;
+    width: 70%;
+    text-align: center;
+}
+
+#light-control .icon {
+    position: relative;
+    margin-left: 10px;
+    width: 30%;
+}
+#light-control .icon .image {
+    position: relative;
+    top: 0;
+    width: 100%;
+    aspect-ratio: 1;
+    display: none;
+}
+
+#light-control .icon .image.on {
+    display: block;
+}
+
+
+
+    
