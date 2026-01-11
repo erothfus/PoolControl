@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <head>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="bubbles.js" defer></script>
     <script src="status.js" defer></script>
     <script src="ui.js" defer></script>
+    <script src="codes.js" defer></script>
     <link rel="stylesheet" type="text/css" href="styles.css">
   </head>
   <body>
@@ -27,7 +29,7 @@
 	    <div class="degrees">n/a</div>
 	    <div class="dsym">&deg;</div>
 	  </div>
-	  <div class="settings"><a onClick="document.getElementById('settings-v0').showModal()"><img src="gear.png" /></a></div>	  
+	  <div class="settings"><a onClick="valveDialogPopup(0)"><img src="gear.png" /></a></div>	  
 	</div>
 
 	<div class="valve v1 entry">
@@ -37,7 +39,7 @@
 	    <div class="degrees">n/a</div>
 	    <div class="dsym">&deg;</div>
 	  </div>
-	  <div class="settings"><a onClick="document.getElementById('settings-v1').showModal()"><img src="gear.png" /></a></div>	  
+	  <div class="settings"><a onClick="valveDialogPopup(1)"><img src="gear.png" /></a></div>	  
 	</div>
 
 	<div class="pump p0 entry">
@@ -109,7 +111,6 @@
 	      <img src="flame.png" class="image on unlit" />
 	    </div>
 	  </div>
-	  <div class="settings"><a onClick="document.getElementById('settings-heater').showModal()"><img src="gear.png" /></a></div>	  	  
 	</div>
 
 	<div class="thermometer thermometer0 entry">
@@ -147,8 +148,8 @@
       </div>
     </div>
 
-    <dialog id="settings-v0" class="valve-dialog">
-      <div class="dialog-container">
+    <dialog id="settings-v0">
+      <div class="dialog-container valve">
 	<div class="title-bar">
 	  <img src="valve.png" />
 	  <div class="name">Drain</div>
@@ -174,8 +175,36 @@
 	      </div>
 	    </div>
 	  </div>
-	  <div class="sep"></div>
-	  
+	  <div class="valveStateDisplay">
+	    <div class="stateMachine">
+	      <div class="state current">
+		<div class="icon">&#x23F9;</div>
+		<div class="code">201</div>
+		<div class="descr">This is a state description</div>
+	      </div>
+	      <div class="state prev">
+		<div class="icon">&#x25c0;</div>
+		<div class="code">202</div>
+		<div class="descr">This is a state description too</div>
+	      </div>
+	    </div>
+	    <div class="calibrationStatus">
+	      <div class="direction clockwise">
+		<div class="icon">&circlearrowright;</div>
+		<div class="value">22.12</div>
+		<div class="units">seconds</div>
+	      </div>
+	      <div class="direction counterclockwise">
+		<div class="icon">&circlearrowleft;</div>
+		<div class="value">22.12</div>
+		<div class="units">seconds</div>
+	      </div>
+	    </div>
+	  </div>
+	  <div class="calibrate">
+	    <div class="button" onclick="valveInitiateCalibrationRequest(0)">Initiate<br>Calibration</div>
+	    <div class="warning">Don't do this unless you know what you're doing!</div>
+	  </div>
 	</div>
 	<div class="bottom" onClick="document.getElementById('settings-v0').close()">
 	  &#10006;&nbsp;&nbsp;&nbsp;Close
@@ -184,12 +213,62 @@
     </dialog>
 
     <dialog id="settings-v1">
-      <div class="dialog-container">
+      <div class="dialog-container valve">
 	<div class="title-bar">
 	  <img src="valve.png" />
 	  <div class="name">Return</div>
 	</div>
 	<div class="body">
+	  <div class="position">
+	    <div class="slider-label">Set<br>Position</div>
+	    <div class="slider-div">
+	      <input class="slider" type="range" id="v1-slider" min="0" max="180" value="90" step="45">
+	      <div class="slider-ticks">
+		<div class="tick"></div>
+		<div class="tick"></div>
+		<div class="tick"></div>
+		<div class="tick"></div>
+		<div class="tick last"></div>
+	      </div>
+	      <div class="slider-ticks numbers">
+		<div class="number">0</div>
+		<div class="number">45</div>
+		<div class="number">90</div>
+		<div class="number">135</div>
+		<div class="number last">180</div>
+	      </div>
+	    </div>
+	  </div>
+	  <div class="valveStateDisplay">
+	    <div class="stateMachine">
+	      <div class="state current">
+		<div class="icon">&#x23F9;</div>
+		<div class="code">201</div>
+		<div class="descr">This is a state description</div>
+	      </div>
+	      <div class="state prev">
+		<div class="icon">&#x25c0;</div>
+		<div class="code">202</div>
+		<div class="descr">This is a state description too</div>
+	      </div>
+	    </div>
+	    <div class="calibrationStatus">
+	      <div class="direction clockwise">
+		<div class="icon">&circlearrowright;</div>
+		<div class="value">22.12</div>
+		<div class="units">seconds</div>
+	      </div>
+	      <div class="direction counterclockwise">
+		<div class="icon">&circlearrowleft;</div>
+		<div class="value">22.12</div>
+		<div class="units">seconds</div>
+	      </div>
+	    </div>
+	  </div>
+	  <div class="calibrate">
+	    <div class="button" onclick="valveInitiateCalibrationRequest(1)">Initiate<br>Calibration</div>
+	    <div class="warning">Don't do this unless you know what you're doing!</div>
+	  </div>
 	</div>
 	<div class="bottom" onClick="document.getElementById('settings-v1').close()">
 	  &#10006;&nbsp;&nbsp;&nbsp;Close
@@ -197,22 +276,8 @@
       </div>
     </dialog>
 
-    <dialog id="settings-heater">
-      <div class="dialog-container">
-	<div class="title-bar">
-	  <img src="flame.png" />
-	  <div class="name">Heater</div>
-	</div>
-	<div class="body">
-	</div>
-	<div class="bottom" onClick="document.getElementById('settings-heater').close()">
-	  &#10006;&nbsp;&nbsp;&nbsp;Close
-	</div>
-      </div>
-    </dialog>
-
     <dialog id="settings-temp">
-      <div class="dialog-container">
+      <div class="dialog-container temp">
 	<div class="title-bar">
 	  <img src="thermometer.png" />
 	  <div class="name">Temp</div>
