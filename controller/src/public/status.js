@@ -38,14 +38,41 @@ function valveStatusDisplay(valve,data)
 {
     var target = document.querySelector(`.valve.v${valve} .degrees`);
     target.textContent = data.position;
-//    console.log("setting",data.position);
-    
+
+    target = document.querySelector(`#v${valve}-slider`);
+    target.value = data.position;
 }
 
+//
+// statusGet() - this is the settings display updater. It runs periodically
+//   to update the data on the settings dispay - as well as the dialogs.
+//   Note that it effectively stops updating the dialogs if they are
+//   displayed.
+//
 function statusGet()
 {
+    var delay = 5000;          // 5 seconds between updates
+    
+    //
+    // isDialogDisplayed() - throws an error if a dialog is displayed,
+    //    causing the display NOT to occur, but the loop continues.
+    //
+    async function noDialogDisplayed()
+    {
+	var v0Dialog = document.getElementById('settings-v0');
+	var v1Dialog = document.getElementById('settings-v1');
+	var tempDialog = document.getElementById('settings-temp');
+
+	if(v0Dialog.open || v1Dialog.open || tempDialog.open) {
+	    throw "Dialog open"
+	}
+    }
+	
     return(
-	valveStatusGet(0)
+	noDialogDisplayed()
+
+	// these are only run if there is no dialog displayed
+	    .then(() =>	valveStatusGet(0))
 	    .then((data) => valveStatusDisplay(0,data))
 	    .then(() => valveStatusGet(1))
 	    .then((data) => valveStatusDisplay(1,data))
@@ -59,7 +86,12 @@ function statusGet()
 	    .then((data) => heaterStatusDisplay(0,data))
 	    .then(() => lightStatusGet(0))
 	    .then((data) => lightStatusDisplay(0,data))
-	    .then(() => setTimeout(statusGet,5000))
+
+	// catch the case where there is a dialog displayed
+	    .catch(() => {})
+
+	// the setTimeout happens in any case
+	    .then(() => setTimeout(statusGet,delay))
     );
 }
 
@@ -121,12 +153,36 @@ function heaterStatusDisplay(heater,data)
     var led = data.enabled;
     ledTurnOn(`.heater`,led);
     ledTurnOn('.heater','-flame',data.active);
+
+    // go ahead and update the setting dialog
+    var target = document.querySelector("#settings-temp .tempDisplay");
+    target.value = Math.floor(data.setPoint/10);
+
+    target = document.querySelector("#settings-temp .slider input");
+    target.value = Math.floor(data.setPoint/10);
 }
 
 function heaterSet(heater,enabled)
 {
     return(
 	fetch(`/api/heater/${heater}/enable/${enabled}`)
+	    .then((response)=> {
+		if(!response.ok) {
+		    throw new Error(`HTTP error. Status: ${response.status}`);
+		}
+		return response.json();
+	    })
+    );
+}
+
+//
+// heaterSetSetPoint() - given a heater number (only one for now) and a temp
+//    in tenths of degrees, set the heater set-point.
+//
+function heaterSetSetPoint(heater,setPoint)
+{
+    return(
+	fetch(`/api/heater/${heater}/config/${setPoint}`)
 	    .then((response)=> {
 		if(!response.ok) {
 		    throw new Error(`HTTP error. Status: ${response.status}`);
@@ -335,35 +391,45 @@ function tempSetPoint()
     
     document.querySelectorAll('.tempSetPoint')
 	.forEach((elem) => {
-	    let slider = elem.querySelector('.slider input');
-	    let number = elem.querySelector('.tempDisplay');
-	    let up = elem.querySelector('.updowns .up');
-	    let down = elem.querySelector('.updowns .down');
-	    console.log(elem,slider,number);
+	    let slider = elem.querySelector('.slider input');  // slider element
+	    let number = elem.querySelector('.tempDisplay');   // text input element
+	    let up = elem.querySelector('.updowns .up');       // up button
+	    let down = elem.querySelector('.updowns .down');   // down button
+
+	    // when the slider changes, update the number
+	    //   and set the value
 	    slider.addEventListener('change',(event) => {
 		number.value = slider.value;
+		heaterSetSetPoint(0,number.value*10);
 	    })
-	    // this is weird, need to set a timeout on input
-	    //    that will check after a second or two
-	    number.addEventListener('input',(event) => {
-		if(Number(number.value) > max) {
-		    number.value = max;
-		}
-		if(Number(number.value) < min) {
-		    number.value = min;
-		}
-		slider.value = number.value;
-	    })
+
+	    // BIG NOTE - this code assumes that the input field is set as "readonly"
+	    //    because it is problematic having the temp be input directly, because
+	    //    "when do you update?"
+	    //
+	    //number.addEventListener('change',(event) => {
+	    //	if(Number(number.value) > max) {
+	    //	    number.value = max;
+	    //	}
+	    //	if(Number(number.value) < min) {
+	    //	    number.value = min;
+	    //	}
+	    //	slider.value = number.value;
+	    //	console.log("number",number.value);
+	    //})
+	    
 	    up.addEventListener('click',(event) => {
 		if(slider.value < max) {
 		    slider.value = Number(slider.value) + 1;
 		    number.value = Number(number.value) + 1;
+		    heaterSetSetPoint(0,number.value*10);
 		}
 	    })
 	    down.addEventListener('click',(event) => {
 		if(slider.value > min) {
 		    slider.value = Number(slider.value) - 1;
 		    number.value = Number(number.value) - 1;
+		    heaterSetSetPoint(0,number.value*10);
 		}
 	    })
 	});
