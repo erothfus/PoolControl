@@ -29,7 +29,3 @@ function degreeSlider(id,cls,min,max,value)
 
     return(newDiv);
 }
-
-document.querySelector('#settings-v1 .body').appendChild(degreeSlider('v1-slider','valve-slider',0,180,50));
-
-
