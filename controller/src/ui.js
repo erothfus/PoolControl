@@ -38,6 +38,14 @@ const pumpAPI = express();   app.use('/api/pump',pumpAPI);
 const heaterAPI = express(); app.use('/api/heater',heaterAPI);
 const lightAPI = express();  app.use('/api/light',lightAPI);
 const modeAPI = express();   app.use('/api/mode',modeAPI);
+const systemAPI = express(); app.use('/api/system',systemAPI);
+
+systemAPI.get('/factoryReset',(req,res) => {
+    SystemControl.factoryReset()
+	    .then((data) => { console.log(data); return(data); })
+	    .then((data) => JSON.stringify(data))
+	    .then((json) => res.send(json));
+});
 
 modeAPI.get('/set/:mode',(req,res) => {
     ModeControl.setMode(req.params.mode)
