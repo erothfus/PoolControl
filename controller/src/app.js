@@ -8,6 +8,7 @@ const Heater = require('./heaterControl');
 const Light = require('./lightControl');
 const Arduino = require('./arduino');
 const Modes = require('./modeControl');
+const System = require('./systemControl');
 
 // need to read configuration here to create the valves
 global.Valves = [
@@ -34,9 +35,18 @@ global.Lights = [
 
 global.ModeControl = Modes;
 
+global.SystemControl = new System();
+
 // the LCD manages itself, mostly
 
 LCD.init(busNum);
+
+// global catch-all - this is mostly for when the Arduino is
+//   being reloaded
+
+process.on("unhandledRejection", (reason) => {
+    console.error("Arduino Unresponsive:", reason);
+});
 
 async function main() {
     global.Arduino = await Arduino;
