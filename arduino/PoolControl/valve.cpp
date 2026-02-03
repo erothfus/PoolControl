@@ -12,13 +12,38 @@
 //   NOTE - we talk directly to the relays here, and the sense of the
 //   relays is given as RELAY_ON/_OFF. Use those defines for relay control.
 //
+//   There are 3 things that get stored in EEPROM for valves:
+//
+//     - the width of travel for the valve is not really implemented
+//       right now - but it is there and gets stored
+//
+//     - the current position of the valve is always put into EEPROM
+//       so that a power fail doesn't forget where the valve is
+//
+//     - the calibrated travel time (clockwise and counter)
+//
+
 #include <Arduino.h>
 #include "valve.h"
 #include <EEPROM.h>
 
+// Default values for EEPROM-stored data
+
 #define DEFAULT_TRAVEL_DIR  0
 #define DEFAULT_MIN_DEG     0
 #define DEFAULT_MAX_DEG     180
+#define DEFAULT_UP_TIME	    5000000L
+#define DEFAULT_DOWN_TIME    5000000L
+#define DEFAULT_POSITION    0
+
+// Since valves stored multiple categories of data, the config/store
+//   routines need different offsets - one after the other
+
+#define TRAVEL_TIMES_OFFSET	0
+#define TRAVEL_TIMES_SIZE	(sizeof(unsigned long)*2)
+#define TRAVEL_LIMITS_OFFSET	(TRAVEL_TIMES_OFFSET + TRAVEL_TIMES_SIZE)
+#define TRAVEL_LIMITS_SIZE	(sizeof(int)*2)
+#define POSITION_OFFSET		(TRAVEL_LIMITS_OFFSET + TRAVEL_LIMITS_SIZE)
 
 // go ahead and adjust these two values if the relays change
 #define RELAY_ON	LOW
@@ -185,17 +210,21 @@ int Valve::readCurrent(void)
 //       min - the degrees where the minimum stop is
 //       max - the degrees where the maximum stop is (should be bigger than min)
 //      
-Valve::Valve(int onPin, int dirPin, int monitorPin, int eepromAddress)
+Valve::Valve(int onPin, int dirPin, int monitorPin, int eepromAddress) : EEPROM_CONTROL(eepromAddress)
 {
   pinON = onPin;
   pinDIR = dirPin;
   pinMONITOR = monitorPin;
 
-  myAddress = eepromAddress;
-
-  degMIN = DEFAULT_MIN_DEG;
-  degMAX = DEFAULT_MAX_DEG;
-  degNOW = degMIN;
+  if(!eepromHasBeenSet()) {
+    configTravelTimes(DEFAULT_UP_TIME,DEFAULT_DOWN_TIME);
+    configTravelLimits(DEFAULT_MIN_DEG,DEFAULT_MAX_DEG);
+    configPosition(DEFAULT_POSITION);
+  } else {
+    loadTravelTimes();
+    loadTravelLimits();
+    loadPosition();
+  }
 
   relayControl(pinON,RELAY_OFF);	// done before setting as output
   relayControl(pinDIR,RELAY_OFF);
@@ -215,8 +244,10 @@ Valve::Valve(int onPin, int dirPin, int monitorPin, int eepromAddress)
 //
 // config() - configure this valve with the appropriate settings for movement.
 //
-void Valve::config(int min, int max)
+void Valve::configTravelLimits(int min, int max)
 {
+  int offset = TRAVEL_LIMITS_OFFSET;
+
   if(min < max) {
     degMIN = min;
     degMAX = max;
@@ -224,6 +255,49 @@ void Valve::config(int min, int max)
     degMIN = max;
     degMAX = min;
   }
+
+  offset += eepromWrite(offset,degMIN);
+  offset += eepromWrite(offset,degMAX);
+}
+void Valve::loadTravelLimits()
+{
+  int offset = TRAVEL_LIMITS_OFFSET;
+
+  offset += eepromRead(offset,&degMIN);
+  offset += eepromRead(offset,&degMAX);
+}
+
+void Valve::configTravelTimes(unsigned long up, unsigned long down)
+{
+  int offset = TRAVEL_TIMES_OFFSET;
+
+  pos_time = up;
+  neg_time = down;
+
+  offset += eepromWrite(offset,pos_time);
+  offset += eepromWrite(offset,neg_time);
+}
+void Valve::loadTravelTimes()
+{
+  int offset = TRAVEL_TIMES_OFFSET;
+
+  offset += eepromRead(offset,&pos_time);
+  offset += eepromRead(offset,&neg_time);
+}
+
+void Valve::configPosition(int pos)
+{
+  int offset = POSITION_OFFSET;
+
+  degNOW = pos;
+
+  offset += eepromWrite(offset,degNOW);
+}
+void Valve::loadPosition()
+{
+  int offset = POSITION_OFFSET;
+
+  offset += eepromRead(offset,&degNOW);
 }
 
 //
@@ -284,10 +358,15 @@ void Valve::calibrationLoop()
 {
   // potentially used later, takes just a bit of time
   //   to set them up now - putting them in the case statement breaks it!
+
+  // BIG NOTE - the calibrationLoop() runs continuously (obviously) which
+  //   means that by the time it is needed, the currentBenchmark has been
+  //   set, allowing appropriate usage of the three derivative measures.
   
   int tolerance = currentBenchmark / 5;		// 20% tolerance - seems high...
   int lowBracket = currentBenchmark - tolerance;
   int highBracket = currentBenchmark + tolerance;
+  
   int current = readCurrent();
 
 #define USING_CURRENT (current >= highBracket || current <= lowBracket)
@@ -440,10 +519,10 @@ void Valve::calibrationLoop()
     break;
     
   case ValveStates::CALIBRATE_LIMIT3:
-    degNOW = degMIN;
+    configPosition(degMIN);
     Serial.println("LIMIT DONE");
     relayControl(pinON,RELAY_OFF);
-    neg_time = micros() - neg_time;
+    configTravelTimes(pos_time,micros() - neg_time);
     Serial.print("POS:");
     Serial.println(pos_time);
     Serial.print("NEG:");
@@ -480,6 +559,11 @@ int Valve::movementComplete()
 
 void Valve::movementLoop()
 {
+  // BIG PROBLEM - the currentBenchmark is not SET in the movement
+  //    loop, meaning that it could be wrong by the time movement is
+  //    requested. It is only set in the calibration loop, which isn't
+  //    necessarily run after reboot.
+  
   int tolerance = currentBenchmark / 5;		// 20% tolerance - seems high...
   int lowBracket = currentBenchmark - tolerance;
   int highBracket = currentBenchmark + tolerance;
@@ -518,7 +602,7 @@ void Valve::movementLoop()
     break;
 
   case ValveStates::MOVE_LIMIT_LOW_DONE:
-    degNOW = degMIN;
+    configPosition(degMIN);
     relayControl(pinON,RELAY_OFF);
     stateSwitch(ValveStates::INACTIVE);
     break;
@@ -551,7 +635,7 @@ void Valve::movementLoop()
     break;
 
   case ValveStates::MOVE_LIMIT_HIGH_DONE:
-    degNOW = degMAX;
+    configPosition(degMAX);
     relayControl(pinON,RELAY_OFF);
     stateSwitch(ValveStates::INACTIVE);
     break;
@@ -582,7 +666,7 @@ void Valve::movementLoop()
 
   case ValveStates::MOVE_TARGET_DONE:
     relayControl(pinON,RELAY_OFF);
-    degNOW = degTARGET;
+    configPosition(degTARGET);
     stateSwitch(ValveStates::INACTIVE);
     break;
   }

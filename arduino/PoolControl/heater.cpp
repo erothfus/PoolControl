@@ -15,23 +15,27 @@
 #define RELAY_OFF	HIGH
 
 // default set point - in tenths of degrees
-#define SETPOINT	700	// 70.0 degrees
+#define DEFAULT_SETPOINT	700	// 70.0 degrees
 
 // need some hysteresis to stop fast cycling of on/off (in tenths)
 #define HOLD_OFF 20	// 2 degrees
 
-Heater::Heater(int pin, Thermometer *therm, int eepromAddress)
+Heater::Heater(int pin, Thermometer *therm, int eepromAddress) : EEPROM_CONTROL(eepromAddress)
 {
   myPin = pin;
   myTherm = therm;
   myAddress = eepromAddress;
 
+  if(!eepromHasBeenSet()) {
+    config(DEFAULT_SETPOINT);		// set default if none is in eeprom
+  } else {
+    loadConfig();		// otherwise use eeprom value
+  }
+  
   pinMode(myPin,OUTPUT);
 
   enabled = 0;	// heater starts off disabled
   active = 0;	//   and inactive
-
-  setPoint = SETPOINT;
 }
 
 //
@@ -40,23 +44,22 @@ Heater::Heater(int pin, Thermometer *therm, int eepromAddress)
 //
 void Heater::config(int tenths)
 {
+  int offset = 0;
+  
   setPoint = tenths;
 
-  EEPROM.put(myAddress,setPoint);
+  offset += eepromWrite(offset,setPoint);
 }
-
-//
-// factoryReset() - put the default values into the EEPROM
-//
-void Heater::factoryReset()
+void Heater::loadConfig()
 {
-  config(SETPOINT);
+  int offset = 0;
+
+  offset += eepromRead(offset,&setPoint);
 }
 
 void Heater::enable(int onoff)
 {
   enabled = onoff?1:0;
-  EEPROM.put(myAddress+sizeof(setPoint),enabled);
 }
 
 //

@@ -9,12 +9,13 @@
 
 #include <time.h>
 #include <Arduino.h>
+#include "eeprom.h"
 
 // ValveStates defines all of the states that a valve can be in, which
 //  drives the different sub-state-machines for a valve - like "calibration"
 //  and "movement"
 
-enum class ValveStates {
+enum class ValveStates { 
 
   INACTIVE = 0,			// the valve is not doing anything right now
   SEEK_FAIL = 1,			// failure during a move to a position
@@ -66,11 +67,13 @@ enum class ValveStates {
 #define STATE_MACHINE
 #define STATE_TIMEOUT
 
-class Valve {
+class Valve : public EEPROM_CONTROL {
 
 public:
   Valve(int,int,int,int);
-  void config(int,int);
+  void configTravelLimits(int,int);
+  void configTravelTimes(unsigned long,unsigned long);
+  void configPosition(int);
   void loop();
 
   void status(byte *);	// fills in the byte array [0] current state, [1] prev [2-3] position
@@ -96,9 +99,11 @@ private:
   int degNOW;		// current degrees (may be estimated)
   int degTARGET;	// set when doing a positioned movement
 
-  int myAddress;	// EEPROM address for NV storage for this object config
-  
   int currentBenchmark;	// tracks the measured inactive current
+
+  void loadTravelLimits(void);
+  void loadTravelTimes(void);
+  void loadPosition(void);
 
   void calibrationLoop();	// called by loop() - for calibration operation
   int calibrationComplete();	// returns true when the calibration is complete

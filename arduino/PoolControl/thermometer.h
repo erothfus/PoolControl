@@ -12,7 +12,7 @@
 #include <Arduino.h>
 #include "eeprom.h"
 
-class Thermometer : protected EEPROM_CONTROL {
+class Thermometer : public EEPROM_CONTROL {
 
 public:
 
@@ -26,12 +26,10 @@ public:
   //   constants used for termister temp translation
   
   void config(float,float,float);
-  void loadConfig(void);
   
 private:
   int myPin;
   float myResistor;	// this is kept as a float because that's how it is used
-  int myAddress;	// EEPROM address for NV storage for this object config
 
   // the following constants are used to convert the analog
   //   reading to a temp
@@ -44,6 +42,7 @@ private:
   int readingPointer;
   long readingTotal;
   int readingAverage;
+  void loadConfig(void);
 
 };
 

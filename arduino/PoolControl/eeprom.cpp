@@ -46,6 +46,13 @@ int EEPROM_CONTROL::eepromWrite(int offset,float value)
   return(sizeof(value));
 }
 
+int EEPROM_CONTROL::eepromWrite(int offset,unsigned long value)
+{
+  EEPROM.put(myAddress,(byte)1);
+  EEPROM.put(myAddress+1+offset,value);
+  return(sizeof(value));
+}
+
 int EEPROM_CONTROL::eepromRead(int offset, byte *retValue)
 {
   EEPROM.get(myAddress+1+offset,*retValue);
@@ -57,6 +64,11 @@ int EEPROM_CONTROL::eepromRead(int offset, int *retValue)
   return(sizeof(*retValue));
 }
 int EEPROM_CONTROL::eepromRead(int offset, float *retValue)
+{
+  EEPROM.get(myAddress+1+offset,*retValue);
+  return(sizeof(*retValue));
+}
+int EEPROM_CONTROL::eepromRead(int offset, unsigned long *retValue)
 {
   EEPROM.get(myAddress+1+offset,*retValue);
   return(sizeof(*retValue));
