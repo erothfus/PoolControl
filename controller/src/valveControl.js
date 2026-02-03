@@ -78,7 +78,7 @@ module.exports = class {
 	return(
 	    Arduino.readBytes(register,4)
 		.then((data) => {
-		    console.log("travel",data);
+//		    console.log("travel",data);
 		    return({pos:(data[0]<<8)+data[1],neg:(data[2]<<8)+data[3]});
 		})
 	);
