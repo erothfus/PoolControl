@@ -49,6 +49,8 @@
 //      1 1 0   1   0 0  x y  - light off for [target]
 //      1 1 0   1   0 1  x y  - light on for [target]
 //      1 1 0   0   0 0  x y  - status of light [target]
+//
+//      1 1 1   1   X X  X X  - eeprom factory reset
 //      
 #include "control.h"
 #include <Arduino.h>      // can go away later
@@ -178,8 +180,13 @@ void ControlRegisterWrite(int count)
 	lights[target].control(arg);
 	break;
 
+	// factory reset of eeprom
+      case 0b111:
+	Serial.println("factory reset");
+	FactoryReset();
+	break;
       }
-      
+
     }
     while(count--) {
       Wire.read();	// dump any extra data
@@ -311,5 +318,27 @@ void ControlSetup(Valve *valve, int vCount ,
   Serial.println("control up dude");
 }
 
+void (*ResetFunction)(void) = 0;	// simple function to software reboot
+
+void FactoryReset()
+{
+  int i;
+
+  // only call factory reset for those using EEPROM
+  
+  for(i=0; i < valveCount; i++) {	// travel limits, position, travel times
+    valves[i].factoryReset();
+  }
+
+  for(i=0; i < thermCount; i++) {	// coefficients for thermocouple
+    therms[i].factoryReset();
+  }
+
+  for(i=0; i < heaterCount; i++) {	// set point
+    heaters[i].factoryReset();
+  }
+
+  ResetFunction();
+}
 
 

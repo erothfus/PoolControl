@@ -13,4 +13,6 @@ extern void ControlSetup(Valve *, int ,
 			 Pump *, int,
 			 Light *, int);
 
+extern void FactoryReset(void);
+
 #define SLAVE_ADDR	0x20
