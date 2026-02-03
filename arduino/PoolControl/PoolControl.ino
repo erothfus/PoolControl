@@ -49,14 +49,6 @@ void setup()
   // initialize serial communication at 9600 bits per second:
   Serial.begin(9600);
 
-  // configuring values is a user-side thing, for now:
-  //
-  //                min  max
-  //                deg  deg
-  //                ---  ---
-  valve[0].config(  0,  180  );
-  valve[1].config(  0,  180  );
-
   // set-up the control system through I2C. It needs to have access
   //   to the control "surface" so pass it arrays of valves and
   //   thermometers - note the counts of members in the array
