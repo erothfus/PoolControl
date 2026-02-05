@@ -575,38 +575,49 @@ int Valve::movementComplete()
 void Valve::movementLoop()
 {
     unsigned long targetTime;
-    
-    // do nothing if we're already at the right target
-    
-    if(degNOW == degTARGET) {
-	stateSwitch(ValveStates::INACTIVE);
-    }
 
-    // now set the time that we need to move based upon where we are
-
-    if(degNOW < degTARGET) {
-      targetTime = pos_time / (unsigned long)(degMAX - degMIN) * (unsigned long)(degTARGET - degNOW);
-    } else {
-      targetTime = neg_time / (unsigned long)(degMAX - degMIN) * (unsigned long)(degNOW - degTARGET);
-    }
-
-    // if we're moving to a limit, add a bit of movement time to take
-    //   care of any slop that has accumulated since we're not using
-    //   current sensing (see main comments)
-    
-    if(degTARGET == degMAX || degTARGET == degMIN) {
-	targetTime += 2000000UL;	// 2 second additional movement for limits
-    }
-  
     switch(state_current) {
 
-	// note that we can get in to this routine from the "old" entry points
-	//   that used to differentiate between limit movement and target movement
+	// note that we can get in to this routine from the "old"
+	//   entry points, too, that used to differentiate between
+	//   limit movement and target movement. Now they just
+	//   initiate a target movement.
 	
     case ValveStates::MOVE_LIMIT_LOW:
+	degTARGET = degMIN;
+	stateSwitch(ValveStates::MOVE_TARGET);
+	break;
+	
     case ValveStates::MOVE_LIMIT_HIGH:
+	degTARGET = degMAX;
+	stateSwitch(ValveStates::MOVE_TARGET);
+	break;
+	
     case ValveStates::MOVE_TARGET:
 
+	// do nothing if we're already at the right target
+    
+	if(degNOW == degTARGET) {
+	    stateSwitch(ValveStates::INACTIVE);
+	    break;
+	}
+
+	// now set the time that we need to move based upon where we are
+
+	if(degNOW < degTARGET) {
+	    targetTime = pos_time / (unsigned long)(degMAX - degMIN) * (unsigned long)(degTARGET - degNOW);
+	} else {
+	    targetTime = neg_time / (unsigned long)(degMAX - degMIN) * (unsigned long)(degNOW - degTARGET);
+	}
+
+	// if we're moving to a limit, add a bit of movement time to take
+	//   care of any slop that has accumulated since we're not using
+	//   current sensing (see main comments)
+    
+	if(degTARGET == degMAX || degTARGET == degMIN) {
+	    targetTime += 2000000UL;	// 2 second additional movement for limits
+	}
+  
 	relayControl(pinDIR,(degNOW < degTARGET)?DIR_POSITIVE:DIR_NEGATIVE);	
 	relayControl(pinON,RELAY_ON);
 	stateSwitch(ValveStates::MOVE_TARGET_DONE,targetTime);
