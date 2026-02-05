@@ -557,119 +557,67 @@ int Valve::movementComplete()
   return(1);
 }
 
+//
+// movementLoop() - this is called from the mail Arduino app loop, and
+//    controls valve movement (as opposed to calibration) - this is done
+//    are more often than calibration.
+//
+//    Movement to points other than the limits is done based upon the
+//    calibrated time.
+//
+//    NOTE - at one point this routine tried to use the current sensor
+//    when going to the limits, as opposed to time - HOWEVER, there
+//    wasn't a simple way to do that due to the sensor value changing
+//    over time as the capacitor in the valve drains. So, instead,
+//    this routine just uses the time PLUS a bit to ensure that it hits
+//    the limits when going to them.
+//
 void Valve::movementLoop()
 {
-  // BIG PROBLEM - the currentBenchmark is not SET in the movement
-  //    loop, meaning that it could be wrong by the time movement is
-  //    requested. It is only set in the calibration loop, which isn't
-  //    necessarily run after reboot.
-  
-  int tolerance = currentBenchmark / 5;		// 20% tolerance - seems high...
-  int lowBracket = currentBenchmark - tolerance;
-  int highBracket = currentBenchmark + tolerance;
-  int current = readCurrent();
-  unsigned long targetTime;	// set to the time for positioned moves
-
-#define USING_CURRENT (current >= highBracket || current <= lowBracket)
-
-  switch(state_current) {
-
-  // Move_LIMIT_LOW - move to lower limit, without worrying about much
+    unsigned long targetTime;
     
-  case ValveStates::MOVE_LIMIT_LOW:
-    relayControl(pinON,RELAY_ON);
-    relayControl(pinDIR,DIR_NEGATIVE);
-    stateSwitch(ValveStates::MOVE_LIMIT_LOW2,1000000UL); // 1 second start
-    break;
-
-  case ValveStates::MOVE_LIMIT_LOW2:
-    if(!USING_CURRENT) {
-      // when we see an inactive current, attempt to read it
-      //   for 100ms, or come back here
-      stateSwitch(ValveStates::MOVE_LIMIT_LOW3);
-    }
-    break;
-
-  case ValveStates::MOVE_LIMIT_LOW3:
-    // wait for 100ms to see if we are ACTUALLY settled, by
-    //   letting this state timeout
-    stateTimeout(ValveStates::MOVE_LIMIT_LOW_DONE,100000UL);
-
-    // if we see something OTHER than inactive, switch back to waiting
-    if(USING_CURRENT) {
-      stateSwitch(ValveStates::MOVE_LIMIT_LOW2);
-    }
-    break;
-
-  case ValveStates::MOVE_LIMIT_LOW_DONE:
-    configPosition(degMIN);
-    relayControl(pinON,RELAY_OFF);
-    stateSwitch(ValveStates::INACTIVE);
-    break;
-  
-  // Move_LIMIT_HIGH - move to high limit, without worrying about much
+    // do nothing if we're already at the right target
     
-  case ValveStates::MOVE_LIMIT_HIGH:
-    relayControl(pinON,RELAY_ON);
-    relayControl(pinDIR,DIR_POSITIVE);
-    stateSwitch(ValveStates::MOVE_LIMIT_HIGH2,1000000UL); // 1 second start
-    break;
-
-  case ValveStates::MOVE_LIMIT_HIGH2:
-    if(!USING_CURRENT) {
-      // when we see an inactive current, attempt to read it
-      //   for 100ms, or come back here
-      stateSwitch(ValveStates::MOVE_LIMIT_HIGH3);
-    }
-    break;
-
-  case ValveStates::MOVE_LIMIT_HIGH3:
-    // wait for 100ms to see if we are ACTUALLY settled, by
-    //   letting this state timeout
-    stateTimeout(ValveStates::MOVE_LIMIT_HIGH_DONE,100000UL);
-
-    // if we see something OTHER than inactive, switch back to waiting
-    if(USING_CURRENT) {
-      stateSwitch(ValveStates::MOVE_LIMIT_HIGH2);
-    }
-    break;
-
-  case ValveStates::MOVE_LIMIT_HIGH_DONE:
-    configPosition(degMAX);
-    relayControl(pinON,RELAY_OFF);
-    stateSwitch(ValveStates::INACTIVE);
-    break;
-
-  // move to the degTARGET configured when called - this will take
-  //   move in the right direction depending upon where we currently
-  //   are.
-
-  case ValveStates::MOVE_TARGET:
     if(degNOW == degTARGET) {
-      stateSwitch(ValveStates::INACTIVE);
-      break;
+	stateSwitch(ValveStates::INACTIVE);
     }
+
+    // now set the time that we need to move based upon where we are
 
     if(degNOW < degTARGET) {
-      relayControl(pinDIR,DIR_POSITIVE);
-      targetTime =
-	pos_time / (unsigned long)(degMAX - degMIN) * (unsigned long)(degTARGET - degNOW);
+      targetTime = pos_time / (unsigned long)(degMAX - degMIN) * (unsigned long)(degTARGET - degNOW);
     } else {
-      relayControl(pinDIR,DIR_NEGATIVE);
-      targetTime = 
-	neg_time / (unsigned long)(degMAX - degMIN) * (unsigned long)(degNOW - degTARGET);
+      targetTime = neg_time / (unsigned long)(degMAX - degMIN) * (unsigned long)(degNOW - degTARGET);
     }
-    relayControl(pinON,RELAY_ON);
 
-    stateSwitch(ValveStates::MOVE_TARGET_DONE,targetTime);
-    break;
+    // if we're moving to a limit, add a bit of movement time to take
+    //   care of any slop that has accumulated since we're not using
+    //   current sensing (see main comments)
+    
+    if(degTARGET == degMAX || degTARGET == degMIN) {
+	targetTime += 2000000UL;	// 2 second additional movement for limits
+    }
+  
+    switch(state_current) {
 
-  case ValveStates::MOVE_TARGET_DONE:
-    relayControl(pinON,RELAY_OFF);
-    configPosition(degTARGET);
-    stateSwitch(ValveStates::INACTIVE);
-    break;
-  }
+	// note that we can get in to this routine from the "old" entry points
+	//   that used to differentiate between limit movement and target movement
+	
+    case ValveStates::MOVE_LIMIT_LOW:
+    case ValveStates::MOVE_LIMIT_HIGH:
+    case ValveStates::MOVE_TARGET:
+
+	relayControl(pinDIR,(degNOW < degTARGET)?DIR_POSITIVE:DIR_NEGATIVE);	
+	relayControl(pinON,RELAY_ON);
+	stateSwitch(ValveStates::MOVE_TARGET_DONE,targetTime);
+	break;
+
+    case ValveStates::MOVE_TARGET_DONE:
+	relayControl(pinON,RELAY_OFF);
+	configPosition(degTARGET);
+	stateSwitch(ValveStates::INACTIVE);
+	break;
+    }
 }
   
 		 
