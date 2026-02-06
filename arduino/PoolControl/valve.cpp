@@ -574,8 +574,6 @@ int Valve::movementComplete()
 //
 void Valve::movementLoop()
 {
-    unsigned long targetTime;
-
     switch(state_current) {
 
 	// note that we can get in to this routine from the "old"
@@ -617,15 +615,58 @@ void Valve::movementLoop()
 	if(degTARGET == degMAX || degTARGET == degMIN) {
 	    targetTime += 2000000UL;	// 2 second additional movement for limits
 	}
-  
+
+	// now, split up the time into 6 segments to allow feedback to go back to the user
+	targetTime /= 6;
+	
 	relayControl(pinDIR,(degNOW < degTARGET)?DIR_POSITIVE:DIR_NEGATIVE);	
 	relayControl(pinON,RELAY_ON);
+	stateSwitch(ValveStates::MOVE_TARGET_PROCESS_1);
+	break;
+
+	// the whole purpose of the next state is to provide periodic
+	//   feedback to the user - we cut the movement into a few
+	//   segments, reporting for each segment
+	
+    case ValveStates::MOVE_TARGET_PROCESS_1:
+	degNOW += (degTARGET - degNOW)/6;
+	stateSwitch(ValveStates::MOVE_TARGET_PROCESS_2,targetTime);
+	break;
+
+    case ValveStates::MOVE_TARGET_PROCESS_2:
+	configPosition(degNOW);
+	degNOW += (degTARGET - degNOW)/5;
+	stateSwitch(ValveStates::MOVE_TARGET_PROCESS_3,targetTime);
+	break;
+
+    case ValveStates::MOVE_TARGET_PROCESS_3:
+	configPosition(degNOW);
+	degNOW += (degTARGET - degNOW)/4;
+	stateSwitch(ValveStates::MOVE_TARGET_PROCESS_4,targetTime);
+	break;
+
+    case ValveStates::MOVE_TARGET_PROCESS_4:
+	configPosition(degNOW);
+	degNOW += (degTARGET - degNOW)/3;
+	stateSwitch(ValveStates::MOVE_TARGET_PROCESS_5,targetTime);
+	break;
+
+    case ValveStates::MOVE_TARGET_PROCESS_5:
+	configPosition(degNOW);
+	degNOW += (degTARGET - degNOW)/3;
+	stateSwitch(ValveStates::MOVE_TARGET_PROCESS_6,targetTime);
+	break;
+
+    case ValveStates::MOVE_TARGET_PROCESS_6:
+	configPosition(degNOW);
+	degNOW += (degTARGET - degNOW)/2;
 	stateSwitch(ValveStates::MOVE_TARGET_DONE,targetTime);
 	break;
 
     case ValveStates::MOVE_TARGET_DONE:
+	degNOW = degTARGET;		// make sure we're RIGHT on
+	configPosition(degNOW);
 	relayControl(pinON,RELAY_OFF);
-	configPosition(degTARGET);
 	stateSwitch(ValveStates::INACTIVE);
 	break;
     }

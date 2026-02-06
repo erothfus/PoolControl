@@ -60,7 +60,13 @@ enum class ValveStates {
   MOVE_LIMIT_HIGH_DONE = 233,
 
   MOVE_TARGET = 210,		// beginning state for a move to position
-  MOVE_TARGET_DONE = 211
+  MOVE_TARGET_PROCESS_1 = 211,	// 6 states to provide feedback to the user
+  MOVE_TARGET_PROCESS_2 = 212,
+  MOVE_TARGET_PROCESS_3 = 213,
+  MOVE_TARGET_PROCESS_4 = 214,
+  MOVE_TARGET_PROCESS_5 = 215,
+  MOVE_TARGET_PROCESS_6 = 216,
+  MOVE_TARGET_DONE = 217
 
 };
 
@@ -132,6 +138,8 @@ private:
   void stateSwitch(ValveStates,unsigned long);
   void stateTimeout(ValveStates,unsigned long);
 
+    // movement loop needs interrim storage
+    unsigned long targetTime;
 };
 
 #endif // VALVE_H

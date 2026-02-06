@@ -45,6 +45,12 @@ const valveStateMachine = {
     233:"Move High Limit Done",
 
     210:"Move to Position Initiate (timed)",
-    211:"Move to Position Done",
+    211:"Move to Position - moving - 1",
+    212:"Move to Position - moving - 2",
+    213:"Move to Position - moving - 3",
+    214:"Move to Position - moving - 4",
+    215:"Move to Position - moving - 5",
+    216:"Move to Position - moving - 6",
+    217:"Move to Position Done",
 };
 
