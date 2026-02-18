@@ -111,6 +111,7 @@
 	      <img src="flame.png" class="image on unlit" />
 	    </div>
 	  </div>
+	  <div class="settings"><a onClick="document.getElementById('settings-temp').showModal()"><img src="gear.png" /></a></div>
 	</div>
 
 	<div class="thermometer thermometer0 entry">
@@ -120,7 +121,7 @@
 	    <div class="degrees"></div>
 	    <div class="dsym">&deg;</div>
 	  </div>
-	  <div class="settings"><a onClick="document.getElementById('settings-temp').showModal()"><img src="gear.png" /></a></div>
+	  <div class="settings"><a onClick="document.getElementById('settings-therm').showModal()"><img src="gear.png" /></a></div>
 	</div>
 
 	<div class="light entry">
@@ -323,6 +324,66 @@
 	  
 	</div>
 	<div class="bottom" onClick="document.getElementById('settings-temp').close()">
+	  &#10006;&nbsp;&nbsp;&nbsp;Close
+	</div>
+      </div>
+    </dialog>
+
+    <dialog id="settings-therm">
+      <div class="dialog-container therm">
+	<div class="title-bar">
+	  <img src="thermometer.png" />
+	  <div class="name">Thermometer</div>
+	</div>
+	<div class="body tempCalibrate">
+	  <div class="input">
+	    <div class="inputTitle">
+	      Measure resistance at the given temperatures
+	    </div>
+	    <div class="inputTemps">
+	      <label>
+		<div class="tempLabel"><span class="low">34/1.1</span>&deg;</div>
+		<input type="number" min="1" step="1" class="tempLow"/>
+	      </label>
+	      <label>
+		<div class="tempLabel"><span class="medium">68/20</span>&deg;</div>
+		<input type="number" min="1" step="1" class="tempMedium"/>
+	      </label>
+	      <label>
+		<div class="tempLabel"><span class="high">104/40</span>&deg;</div>
+		<input type="number" min="1" step="1" class="tempHigh"/>
+	      </label>
+	    </div>
+	  </div>
+	  <div class="scaleSelect">
+	    <div class="scaleRadios">
+	      <label>
+		<input type="radio" name="scale" value="F">
+		F&deg;
+	      </label>
+	      <label>
+		<input type="radio" name="scale" value="C">
+		C&deg;		
+	      </label>
+	    </div>
+	  </div>
+	  <div class="coefficients">
+	    <div class="c">
+	      <div class="label">A</div><div class="value">4.56784782e-7</div>
+	    </div>
+	    <div class="c">
+	      <div class="label">B</div><div class="value">4.56784782e-7</div>
+	    </div>
+	    <div class="c">
+	      <div class="label">C</div><div class="value">4.56784782e-7</div>
+	    </div>
+	  </div>
+	  <div class="calibrate">
+	    <div class="button" onclick="">Set</div>
+	    <div class="warning">Don't do this unless you know what you're doing!</div>
+	  </div>
+	</div>
+	<div class="bottom" onClick="document.getElementById('settings-therm').close()">
 	  &#10006;&nbsp;&nbsp;&nbsp;Close
 	</div>
       </div>
