@@ -138,9 +138,20 @@ pumpAPI.get('/:pump/status', (req,res) => {
 
 thermAPI.get('/:therm/read', (req,res) => {
     if(req.params.therm >= Thermometers.length) {
-	res.send(`ERROR - valve ${req.params.therm} unknown`);
+	res.send(`ERROR - thermometer ${req.params.therm} unknown`);
     } else {
 	Thermometers[req.params.therm].read()
+//	    .then((data) => { console.log(data); return(data); })
+	    .then((data) => JSON.stringify(data))
+	    .then((json) => res.send(json));
+    }
+});
+
+thermAPI.get('/:therm/config/:tA/:tB/:tC/:rA/:rB/:rC', (req,res) => {
+    if(req.params.therm >= Thermometers.length) {
+	res.send(`ERROR - thermometer ${req.params.therm} unknown`);
+    } else {
+	Thermometers[req.params.therm].config(req.params)
 //	    .then((data) => { console.log(data); return(data); })
 	    .then((data) => JSON.stringify(data))
 	    .then((json) => res.send(json));
