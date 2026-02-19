@@ -22,6 +22,10 @@ public:
   int readAVG(void);	// returns the average of the last READINGS_FOR_AVERAGE readings (use this)
   void loop(void);	// used to keep the average up
 
+  // coefficients can also be given, which will call config()
+
+  void coefficients(byte *);
+
   // configuration for a thermometer means giving it the three
   //   constants used for termister temp translation
   

@@ -40,6 +40,7 @@
 //      0 1 1   0   X X  x y  - get speed status of pump [target]
 //
 //      1 0 0   0   0 0  x y  - read temperature of [target] (2)
+//      1 0 0   1   X X  x y  - configure therm coefficients (9 bytes)
 //
 //	1 0 1   1   0 0  x y  - heater off of [target]
 //	1 0 1   1   0 1  x y  - heater on of [target]
@@ -91,8 +92,10 @@ void ControlRegisterWrite(int count)
   int command;
   int isWrite;
   int arg;
+  int i;
   int target;
   int degrees;	// used to assemble the move-to degrees
+  byte dataBuffer[10];		// simple data buffer - should be using this  
   
   //  Serial.print("Write Received:"); Serial.println(count);
 
@@ -152,6 +155,18 @@ void ControlRegisterWrite(int count)
 	pumps[target].control(arg);
 	break;
 
+	// configure thermometer coefficients
+      case 0b100:
+	  Serial.println("therm coef config");
+	  if(count >= 9) {
+	      for(i=0; i < 9; i++) {
+		  dataBuffer[i] = Wire.read();
+	      }
+	      count -= 9;
+	      therms[target].coefficients(dataBuffer);
+	  }
+	  break;
+	  
 	// work with the heater
       case 0b101:
 	switch(arg) {
@@ -247,10 +262,6 @@ void ControlRegisterRead()
     // get pump speed
     case 0b011:
 	singleByteData[0] = pumps[target].status;
-	Serial.print("pump ");
-	Serial.print(target);
-	Serial.print(" ");
-	Serial.println(pumps[target].status);
 	Wire.write(singleByteData,1);
 	break;
       

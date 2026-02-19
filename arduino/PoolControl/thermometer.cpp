@@ -7,25 +7,64 @@
 //   coeficients (below) - here is an npm libraray for it:
 //   https://www.npmjs.com/package/steinhart-hart
 //
+//   Other standard coefficients for the Steinhart-Hart equation, for
+//   a 10k resister, are found in:
+//      https://www.qtisensing.com/wp-content/uploads/Steinhart-Hart-Coefficients.pdf
+//
+//   I measured the blue pool thermister and got:
+//       34 deg = 27830 ohm
+//	 68     = 12450
+//      104     = 5540
+//
+//   For constants of 1.619370382e-3, 1.448585020e-4, 5.079933354e-7 (javascript)
+//                    1.6137e-3       1.4584e-4       5.040e-7 (C++ small float)
+
+#include <Arduino.h>
+#include "steinharthart.h"
+
+// this enum is used to index into the ThermCurves array
+
+enum ThermCurveTypes {
+    TC_S = 0,		// original curve from the tutorial above
+    TC_S2 = 1,		// slightly different S curve from the pdf above
+    TC_Z = 2,		// from pdf above
+    TC_Y = 3,		// from pdf above
+    TC_MEASURED = 4	// (see above)
+};
+
+struct
+{	
+    float c1;
+    float c2;
+    float c3;
+} ThermCurves[] = {
+    { 1.009249522e-03,    2.378405444e-04,    2.019202697e-07 },// S
+    { 1.044054703604e-03, 2.34368328566e-04,  4.90829151e-07 },	// S2
+    { 1.1164014655e-03,   2.37982973213e-04, -3.72283234e-07 },	// Z
+    { 6.61913453349e-04,  3.26726406677e-04, -7.107372384e-06 },// Y
+    { 1.619370382e-03,    1.448585020e-04,    5.079933354e-07 }	// MEASURED
+};
+    
 #include <Arduino.h>
 #include "thermometer.h"
 
 //
 // Thermometer() - simply configure the pin and the default
-//    factors.
+//     coefficients.
 //
 Thermometer::Thermometer(int pin, int kohms, int eepromAddress) : EEPROM_CONTROL(eepromAddress)
 {
-  myPin = pin;
-  myResistor = (float)kohms * 1000.0;	// used during reading as a float -
+    int	curve = TC_MEASURED;
+    myPin = pin;
+    myResistor = (float)kohms * 1000.0;	// used during reading as a float -
                                         //   so go ahead and set it as such
-
   if(!eepromHasBeenSet()) {
-    // set the defaults if none have been written to eeprom
-    config( 1.009249522e-03, 2.378405444e-04, 2.019202697e-07);
+      // set the defaults if none have been written to eeprom
+      config(ThermCurves[curve].c1,ThermCurves[curve].c2,ThermCurves[curve].c3);
+
   } else {
-    // otherwise load them from eeprom
-    loadConfig();
+      // otherwise load them from eeprom
+      loadConfig();
   }
 
   // set up for reading averaging
@@ -95,6 +134,37 @@ int Thermometer::read(void)
   //   tenths of a degree in a 2-byte signed int
 
   return((int)(T * 10.0));
+}
+
+//
+// coefficients() - given a byte buffer from an I2C read, translate
+//    that information into coefficients, and then call config on
+//    those.
+//
+//    Structure of the buffer:
+//
+//     Temp  Temp  Temp   Resist A    Resist B    Resist C
+//      A(F)  B(F)  C(F)   hi   lo     hi   lo     hi   lo
+//    |-----|-----|-----|-----,-----|-----,-----|-----,-----|
+//
+void Thermometer::coefficients(byte *buffer)
+{
+    byte tA = buffer[0];
+    byte tB = buffer[1];
+    byte tC = buffer[2];
+    int rA = (((int)buffer[3]) << 8) | (int)buffer[4];
+    int rB = (((int)buffer[5]) << 8) | (int)buffer[6];
+    int rC = (((int)buffer[7]) << 8) | (int)buffer[8];
+    float A, B, C;
+
+    SHcoefficients(tA,tB,tC,rA,rB,rC,&A,&B,&C);
+
+    Serial.println("Coefficients");
+    Serial.println(A,10);
+    Serial.println(B,10);
+    Serial.println(C,10);
+    
+    config(A,B,C);
 }
 
 int Thermometer::readAVG()
