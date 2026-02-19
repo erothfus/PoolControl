@@ -652,6 +652,12 @@ input[type="range"]::-webkit-slider-thumb {
 		    left: 5px;
 		}
 
+		.button.disabled {
+		    box-shadow: none;
+		    opacity: 20%;
+		    pointer-events: none;
+		}
+
 		.warning {
 		    margin-top: 10px;
 		    font-family: sans-serif;

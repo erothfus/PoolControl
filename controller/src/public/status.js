@@ -572,6 +572,109 @@ function valveInitiateCalibration(valve)
     );
 }
 
+// Termometer configuration pop-up routines
+
+var scaleTemps = {
+    F : { low:  34, medium: 68, high: 104 },
+    C : { low: 1.1, medium: 20, high:  40 }
+};
+	
+
+//
+// thermConfigHandling() - handle the input fields and confirmation button
+//    for the thermometer settings. Needs to be called upon init.
+//
+function thermConfigHandling()
+{
+    var calibrateButton = document.querySelector("#settings-therm .calibrate .button");
+    var inputTemps = document.querySelector("#settings-therm .inputTemps");
+    var lowTempInput = inputTemps.querySelector('.tempLow');
+    var mediumTempInput = inputTemps.querySelector('.tempMedium');
+    var highTempInput = inputTemps.querySelector('.tempHigh');
+
+    var coefficients = document.querySelector("#settings-therm .coefficients");
+    var cA = coefficients.querySelector('.value.A');
+    var cB = coefficients.querySelector('.value.B');
+    var cC = coefficients.querySelector('.value.C');
+
+    // put listeners on the three input fields - which will enable/disable
+    //   the submit button, as well as show the coefficients (for fun)
+    
+    for(var tempInput of [lowTempInput,mediumTempInput,highTempInput]) {
+	tempInput.addEventListener('input',(e) => {
+	    var full = lowTempInput.value != '' && mediumTempInput.value != '' && highTempInput.value != '';
+	    enableSubmit(full);
+	    if(full) {
+		var coef = calculateCoefficients(scaleTemps["C"]["low"],
+						 scaleTemps["C"]["medium"],
+						 scaleTemps["C"]["high"],
+						 lowTempInput.value,
+						 mediumTempInput.value,
+						 highTempInput.value);
+		cA.textContent = coef.A.toExponential(6);
+		cB.textContent = coef.B.toExponential(6);
+		cC.textContent = coef.C.toExponential(6);
+	    } else {
+		cA.innerHTML = cB.innerHTML = cC.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+	    }
+	    
+	})
+    }
+
+    // add a listener to the submit button
+
+    calibrateButton.addEventListener('click', (e) => {
+	var call = 'api/therm/0/config';
+	call += `/${scaleTemps["F"]["low"]}`;
+	call += `/${scaleTemps["F"]["medium"]}`;
+	call += `/${scaleTemps["F"]["high"]}`;
+	call += `/${lowTempInput.value}`;
+	call += `/${mediumTempInput.value}`;
+	call += `/${highTempInput.value}`;
+
+	fetch(call)
+	    .then((response)=> {
+		if(!response.ok) {
+		    throw new Error(`HTTP error. Status: ${response.status}`);
+		}
+		return response.json();
+	    })
+	    .then((data) => { console.log("Therm config",data); return(data); })
+    });
+    
+    setScale("F");   // the default set by the html
+    enableSubmit(false);
+
+    //
+    // enableSubmit() - dis/enables the submit button for the thermometer
+    //     config given the arg.
+    //
+    function enableSubmit(onoff)
+    {
+	if(onoff) {
+	    calibrateButton.classList.remove('disabled');
+	} else {
+	    calibrateButton.classList.add('disabled');
+	}
+    }
+
+}
+
+//
+// setScale() - sets either Fahrenheit or Celcius depending upon the arg.
+//
+function setScale(scale)
+{
+    var inputTemps = document.querySelector("#settings-therm .inputTemps");
+
+    for(var temp of ["low","medium","high"]) {
+	inputTemps.querySelector(`.${temp}`).textContent = scaleTemps[scale][temp];
+    }
+}
+
+
+// INITIAL CONFIGURATION HERE
+
 valveSetPosition(0);
 valveSetPosition(1);
 
@@ -581,3 +684,4 @@ ledCallbacks();
 
 statusGet();
 
+thermConfigHandling();

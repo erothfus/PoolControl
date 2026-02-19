@@ -7,6 +7,7 @@
     <script src="status.js" defer></script>
     <script src="ui.js" defer></script>
     <script src="codes.js" defer></script>
+    <script src="steinharthart.js" ></script>
     <link rel="stylesheet" type="text/css" href="styles.css">
   </head>
   <body>
@@ -342,15 +343,15 @@
 	    </div>
 	    <div class="inputTemps">
 	      <label>
-		<div class="tempLabel"><span class="low">34/1.1</span>&deg;</div>
+		<div class="tempLabel"><span class="low"></span>&deg;</div>
 		<input type="number" min="1" step="1" class="tempLow"/>
 	      </label>
 	      <label>
-		<div class="tempLabel"><span class="medium">68/20</span>&deg;</div>
+		<div class="tempLabel"><span class="medium"></span>&deg;</div>
 		<input type="number" min="1" step="1" class="tempMedium"/>
 	      </label>
 	      <label>
-		<div class="tempLabel"><span class="high">104/40</span>&deg;</div>
+		<div class="tempLabel"><span class="high"></span>&deg;</div>
 		<input type="number" min="1" step="1" class="tempHigh"/>
 	      </label>
 	    </div>
@@ -358,24 +359,24 @@
 	  <div class="scaleSelect">
 	    <div class="scaleRadios">
 	      <label>
-		<input type="radio" name="scale" value="F">
+		<input class="F" type="radio" name="scale" value="F" onclick="setScale('F')" checked autofocus>
 		F&deg;
 	      </label>
 	      <label>
-		<input type="radio" name="scale" value="C">
+		<input class="C" type="radio" name="scale" value="C" onclick="setScale('C')">
 		C&deg;		
 	      </label>
 	    </div>
 	  </div>
 	  <div class="coefficients">
 	    <div class="c">
-	      <div class="label">A</div><div class="value">4.56784782e-7</div>
+	      <div class="label">A</div><div class="value A">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
 	    </div>
 	    <div class="c">
-	      <div class="label">B</div><div class="value">4.56784782e-7</div>
+	      <div class="label">B</div><div class="value B">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
 	    </div>
 	    <div class="c">
-	      <div class="label">C</div><div class="value">4.56784782e-7</div>
+	      <div class="label">C</div><div class="value C">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
 	    </div>
 	  </div>
 	  <div class="calibrate">
