@@ -19,10 +19,7 @@ function init(bus)
 {                 // bus  i2c-id  cols  rows
     lcd = new LCD(   bus,  0x27,   16,   2);
     
-    return(
-	lcd.begin()
-	    .then(() => displayStart())
-    );
+    return(displayStart());
 }
 
 //
@@ -40,8 +37,10 @@ async function displayStart()
 function screen1()
 {
     return(
-	lcd.clear()
+	lcd.begin()
+	    .then(() =>	lcd.clear())
 	    .then(() => lcd.printLine(0,IP.wlan0[0]))
+	    .then(() => lcd.close())
     );
 }
 
@@ -51,8 +50,10 @@ function screen1()
 function screen2()
 {
     return(
-	lcd.clear()
+	lcd.begin()
+	    .then(() =>	lcd.clear())
 	    .then(() => lcd.printLine(0,"Hello World"))
+	    .then(() => lcd.close())
     );
 }
 
