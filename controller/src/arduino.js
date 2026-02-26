@@ -45,13 +45,22 @@ class Arduino {
     //    register query. Will read as many as available and return
     //    a Buffer with the data.
     //
+    //    Note - this routine used to split this into a write of the
+    //    register followed by a read. I believe this was the source
+    //    of errors because another thread Promise could be executed
+    //    between the write of the register and the read, potentially
+    //    causing the wrong data to be read back.
+    //
+    //    So I switched to another call in the i2c-bus library that
+    //    combined the write & read together. This means that another
+    //    Promise can't get in there. This call was specifically meant
+    //    for the SMBus, which looks to be quite compatible.
+    //
     readBytes(register,count)
     {
-	var wbuf = Buffer.from([register]);
 	var rbuf = Buffer.alloc(count);
 	return(
-	    this.i2c.i2cWrite(ARDUINO_ADDR,1,wbuf)
-		.then(() => this.i2c.i2cRead(ARDUINO_ADDR,count,rbuf))
+	    this.i2c.readI2cBlock(ARDUINO_ADDR,register,count,rbuf)
 		.then(() => rbuf)
 	);
     }
