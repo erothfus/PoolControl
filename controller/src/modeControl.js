@@ -11,14 +11,6 @@
 //   actual modes.
 //
 
-// MODES - here is where all of the control modes are defined
-//    They are used to create the objects that control them,
-//    and become part of the ControlModeCollection.
-//
-// Each mode sets up to 6 things: heater, 2 pumps, 2 valves, and the
-// light.  Note that the light is normally not changed, only when
-// turning EVERYTHING off.
-
 // VALVE 0 is the jets
 const VALVE_0_SPA = 0;
 const VALVE_0_POOL = 180;
@@ -29,9 +21,93 @@ const VALVE_1_SPA = 0;
 const VALVE_1_POOL = 180;
 const VALVE_1_BOTH = 90;
 
+// New Mode Mechanism
+//
+//  After talks with the client :-) I have determined that switching
+//  modes needs to be a process, as opposed to simply establishing
+//  state. For example, when moving between some modes, the pump
+//  should be shut off prior to moving the valves.
+//
+//  I tried a fun plan set-up where there were both parallel and
+//  sequential operations, but believe I was smacking into two
+//  threads entering i2c at once, and results got scrambled. Sure,
+//  I could go into the i2c library, but instead, I turn everything
+//  into sequential. But this means that because of the above issue
+//  (from the "client") I needed to create pseudo objects for the
+//  valves, so that their completion becomes a "thing".
+//
+//  Note that this is an array (ordered) plan, where each element is
+//  an "instruction".
+
+var Mode_AllOff_Plan = [
+    { heater: 0 },     // heater off right away
+    { pump0: 0 },      // zero is off, one is low speed, two is high speed
+    { pump1: 0 },      // zero is off, one is on
+    { light: 0 },      // this mode actually turns EVERYTHING off
+];
+
+var Mode_SPA_Plan = [
+    { heater: 0 },
+    { pump0: 0 },
+    { pump1: 0 },              // both pumps go off at first
+    { valve0: VALVE_0_SPA },   // start the valves moving
+    { valve1: VALVE_1_SPA },
+    { valveWait: 0 },          // wait for each vale to stop moving
+    { valveWait: 1 },
+    { pump0: 2 },              // fire back up the main pump
+    { delay: 3 },              // pump spin-up before turning on heater
+    { heater: 1 },             // then turn on the heater
+];
+
+var Mode_SPAClean_Plan = [
+    { heater: 0 },
+    { pump0: 0 },
+    { pump1: 0}, 
+    { valve0: VALVE_0_POOL },
+    { valve1: VALVE_1_BOTH },
+    { valveWait: 0 },
+    { valveWait: 1 },
+    { pump0: 2 },
+];
+
+var Mode_HighFilter_Plan = [
+    { heater: 0 },
+    { pump0: 0 },
+    { pump1: 0},                         // both pumps go off at first
+    { valve0: VALVE_0_BOTH },
+    { valve1: VALVE_1_POOL },  // move the valves together
+    { valveWait: 0 },
+    { valveWait: 1 },
+    { pump0: 2 },
+];
+
+var Mode_LowFilter_Plan = [
+    { heater: 0 },
+    { pump0: 0 },
+    { pump1: 0},                         // both pumps go off at first
+    { valve0: VALVE_0_BOTH },
+    { valve1: VALVE_1_POOL },  // move the valves together
+    { valveWait: 0 },
+    { valveWait: 1 },
+    { pump0: 1 },
+];
+
+var Mode_WarmPool_Plan = [
+    { heater: 0 },
+    { pump0: 0 },
+    { pump1: 0},
+    { valve0: VALVE_0_BOTH },
+    { valve1: VALVE_1_POOL },
+    { valveWait: 0 },
+    { valveWait: 1 },
+    { pump0: 2 },
+    { delay: 3 },            // pump spin-up before turning on heater
+    { heater: 1 },
+];
+
 // here are the names for each of resources availble, along with their
 //  mappings to objects that control them. These keys are those that MUST
-//  bust be used in mode setting definitions.
+//  be used in mode setting definitions.
 
 const resources = { 'heater':{set:(h) => Heaters[0].enable(h),
 			      get:(h) => Heaters[0].status().then((status) => status.enabled)},
@@ -47,111 +123,114 @@ const resources = { 'heater':{set:(h) => Heaters[0].enable(h),
 			     get:(l) => Lights[0].status().then((status) => status.status) },
 		  };
 
-// NOTE - each mode MUST have a heater, pump0, pump1, valve0, valve1, light.
+// commands can be part of the plan, but aren't ever part of settings.
 
-var Mode_AllOff = {
-    heater: 0,     // zero is off, one is on
-    pump0: 0,      // zero is off, one is low speed, two is high speed
-    pump1: 0,      // zero is off, one is on
-    valve0: null,  // "null" is a no-change/ignore value
-    valve1: null,
-    light: 0,      // this mode actually turns EVERYTHING off
-};
+const commands = { 'valveWait':(valve)=>Valves[valve].wait(),
+		   'delay':(secs)=> new Promise((res) => setTimeout(res,secs*1000))
+		 };
 
-var Mode_SPA = {
-    heater: 1,
-    pump0: 2,
-    pump1: 0,
-    valve0: VALVE_0_SPA,
-    valve1: VALVE_1_SPA,
-    light: null     // no change on light
-};
-    
-var Mode_SPAClean = {
-    heater: 0,
-    pump0: 2,
-    pump1: 0,
-    valve0: VALVE_0_POOL,
-    valve1: VALVE_1_BOTH,
-    light: null     // no change on light
-};
-    
-var Mode_HighFilter = {
-    heater: 0,
-    pump0: 2,
-    pump1: 0,
-    valve0: VALVE_0_BOTH,
-    valve1: VALVE_1_POOL,
-    light: null     // no change on light
-};
-    
-var Mode_LowFilter = {
-    heater: 0,
-    pump0: 1,
-    pump1: 0,
-    valve0: VALVE_0_BOTH,
-    valve1: VALVE_1_POOL,
-    light: null     // no change on light
-};
-    
-var Mode_WarmPool = {
-    heater: 1,
-    pump0: 2,
-    pump1: 0,
-    valve0: VALVE_0_BOTH,
-    valve1: VALVE_1_POOL,
-    light: null     // no change on light
-};
-
-// MODE NAMES - are defined here - you must use these to switch modes
+// MODE NAMES - are defined here - you must use these to switch modes.
+//   Each mode has the plan that implements the mode.
 
 const availableModes = {
-    "allOff"  :Mode_AllOff,
-    "high"    :Mode_HighFilter,
-    "low"     :Mode_LowFilter,
-    "spa"     :Mode_SPA,
-    "spaClean":Mode_SPAClean,
-    "warmPool":Mode_WarmPool,
+    "allOff"  :Mode_AllOff_Plan,
+    "high"    :Mode_HighFilter_Plan,
+    "low"     :Mode_LowFilter_Plan,
+    "spa"     :Mode_SPA_Plan,
+    "spaClean":Mode_SPAClean_Plan,
+    "warmPool":Mode_WarmPool_Plan,
 };
 
 
 class ControlMode {
 
-    settings;    // the hardware settings for this mode
+    myPlan;        // things going off/on in a particular order
+    myName;        // because why not?
+    mySettings;    // the results of executing myPlan
 
-    constructor(mySettings)
+    constructor(name,plan)
     {
-	this.settings = mySettings;
+	this.myName = name;
+	this.myPlan = plan;
+	this.mySettings = this.computeSettings();
     }
 
     //
-    // setMode() - given my settings, send it off to the hardware.
+    // setMode() - given my plan, send it off to the hardware.
     //   Note that this SETS THE MODE - no matter what it currently
     //   looks like. Not optimized, but "for sure".
+    //
+    //   BIG NOTE - this FAILS if we're in the middle of setting
+    //   the mode already. (how to do this???)
     //
     async setMode()
     {
 	let chain = Promise.resolve(0);
 
-	for(let setting in resources) {
-	    if(this.settings[setting] !== null) {  // null settings are ignored
-		console.log("setting ",setting," to ",this.settings[setting]);
-		chain = chain.then(() => resources[setting].set(this.settings[setting]));
+	// A plan has an array of objects, each object has a resource
+	//   setting or command. The plan should be traversed in order,
+	//   chaining things such that one instruction occurs AFTER the
+	//   other one is done.
+	//
+	// Note that this routine builds up the complete chain prior
+	//   to returning.
+
+	this.myPlan.forEach((instruction) => {
+	    var resource = Object.keys(instruction)[0];   // all but #1 ignoerd
+
+	    if(resources.hasOwnProperty(resource)) {     // command or resource setting?
+		chain = chain.then(() => resources[resource].set(instruction[resource]));
+	    } else {
+		chain = chain.then(() => commands[resource](instruction[resource]));
 	    }
-	}
+	});
+
 	return(chain);
     }
+
+    //
+    // computeSettings() - given my plan, compute the settings that
+    //    will result after the plan is run - ignoring what happened
+    //    while this mode was being set-up (because pumps are normally
+    //    turned off before moving valves for example).
+    //
+    //    This is goes through the plan, merging the resource settings
+    //    so that the last setting take precedence.
+    //
+    //    If there are resources that aren't mentioned in the plan,
+    //    they are set to null, indicating that the plan didn't care
+    //    about that resource.
+    //
+    computeSettings()
+    {
+	var settings = {};
+	for(var resource in resources) {
+	    settings[resource] = null;
+	}
+	for(var instruction of this.myPlan) {
+	    settings = Object.assign(settings,instruction);
+	}
+	return(settings);
+    }
+    
 
     // matches() - returns true or false, depending upon wether
     //    this mode matches the given settings. Note that this
     //    takes into account the "null", ignoring settings with
     //    the null.
     //
+    //    "settings" refers to an object with one resource and value
+    //    for that resource. If the value is null, then the value for
+    //    that resource is "don't care."
+    //
     matches(settings)
     {
-	for(let setting in resources) {
-	    if(this.settings[setting] !== null) {
-		if(settings[setting] != this.settings[setting]) {
+	for(let resource in resources) {
+	    if(settings.hasOwnProperty(resource) &&
+	       settings[resource] !== null &&
+	       this.mySettings.hasOwnProperty(resource) &&
+	       this.mySettings[resource] !== null) {
+		if(settings[resource] != this.mySettings[resource]) {
 		    return(false);
 		}
 	    }
@@ -164,11 +243,11 @@ class ControlMode {
 class ControlModeCollection {
 
     collection = {};           // this is an array of ControlModes, indexed
-                               //   by the mode name
+    //   by the mode name
     constructor()
     {
 	for(var mode in availableModes) {
-	    this.collection[mode] = new ControlMode(availableModes[mode]);
+	    this.collection[mode] = new ControlMode(mode,availableModes[mode]);
 	}
     }
 
