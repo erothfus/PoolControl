@@ -12,6 +12,17 @@
 
 const i2c = require('i2c-bus');
 
+const VALVE_INACTIVE = 0;     // defined in the Arduino - seeds public/codes.js too
+
+//
+// delayPromise() - little utility function to return a Promise that waits for
+//    the given number of seconds.
+//
+function delayPromise(secs)
+{
+    return(new Promise((res) => setTimeout(res,secs*1000)));
+}
+
 module.exports = class {
 
     constructor(span,dir,num)
@@ -39,7 +50,62 @@ module.exports = class {
 		.then(() => ({status:'ok'}))
 	);
     }
+
+    //
+    // secondCheck() - this routine is used when waiting for a valve
+    //     to get back to quiescent. It returns a Promise, that
+    //     actually refers to itself, so that it will continue to loop
+    //     around until the valve gets to the right state, or the
+    //     number of 1 second loops gets to the maximum.
+    //
+    secondCheck(maxWaitSecs)
+    {
+	return(
+	    this.status()
+		.then((status) => {
+		    if(status.state == VALVE_INACTIVE) {
+			return(true);
+		    }
+		    if(maxWaitSecs == 0) {
+			throw false;
+		    }
+		    return(
+			delayPromise(1).then(() => this.secondCheck(maxWaitSecs-1))
+		    );
+		})
+	);
+    }
 	
+    //
+    // wait() - waits until this valve has stopped moving (is
+    //   quiescent).  This is used primarily when switching modes,
+    //   because the pump shouldn't come on before the valve gets done
+    //   moving.
+    //
+    //   NOTE - this used to be part of a "moveWait()" - but that caused
+    //   i2c crashing because both valves would enter into moveWait() at
+    //   the same time, so their results got scrambled.
+    //
+    //   The approach here is to check the status of the valve periodically
+    //   to see if it has reached the quiescent state. We only wait so
+    //   long, however, because if the wait grows larger than 2 times the
+    //   rotational time (actually just the sum of the two rotational times)
+    //   then we can assume that something went dramatically wrong, and
+    //   we throw an error...which SHOULD stop other processes because
+    //   the valve isn't in the right position.
+    //
+    wait()
+    {
+	return(
+	    // first, get the rotational speed to plan for timeout
+	    this.travelTimes()
+		.then((times) => (times.pos + times.neg)/10)
+
+	    // now we set-up to wait, while checking every second - noting
+	    //   that this routine can throw an error
+		.then((maxWaitSecs) => this.secondCheck(maxWaitSecs))
+	);
+    }
 
     status()
     {
@@ -47,7 +113,6 @@ module.exports = class {
 	return(
 	    Arduino.readBytes(register,4)
 		.then((data) => {
-//		    console.log("status",data);
 		    return({state:data[0],prev:data[1],position:(data[2]<<8)+data[3]});
 		})
 	);
