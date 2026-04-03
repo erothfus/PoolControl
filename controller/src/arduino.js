@@ -3,10 +3,8 @@
 //
 //   Interface to the Arduino. Used for valves and termometers.
 //
-const i2c = require('i2c-bus');
 
 ARDUINO_ADDR = 0x20;
-busNum = 1;
 
 class Arduino {
 
@@ -66,6 +64,4 @@ class Arduino {
     }
 }
     
-module.exports = 
-    i2c.openPromisified(busNum)
-    .then((i2cObj) => new Arduino(i2cObj));
+module.exports = Arduino;

@@ -1,14 +1,18 @@
-const LCD = require('./lcdControl');
-const i2c = require('i2c-bus');
 const UI = require('./ui');
 const Valve = require('./valveControl');
 const Thermometer = require('./thermometerControl');
 const Pump = require('./pumpControl');
 const Heater = require('./heaterControl');
 const Light = require('./lightControl');
-const Arduino = require('./arduino');
+const ArduinoClass = require('./arduino');
+const LCDClass = require('./lcdControl');
 const Modes = require('./modeControl');
 const System = require('./systemControl');
+
+// we get the i2c bus instance here - just once
+//   so that everyone that needs it can use the same instance
+const i2c = require('i2c-bus');
+const i2cBusNum = 1;
 
 // need to read configuration here to create the valves
 global.Valves = [
@@ -37,10 +41,6 @@ global.ModeControl = Modes;
 
 global.SystemControl = new System();
 
-// the LCD manages itself, mostly
-
-LCD.init(busNum);
-
 // global catch-all - this is mostly for when the Arduino is
 //   being reloaded
 
@@ -49,15 +49,27 @@ process.on("unhandledRejection", (reason) => {
 });
 
 async function main() {
-    global.Arduino = await Arduino;
 
-    ModeControl.setMode('allOff')
+    // first, set-up the i2c bus for both the Arduino and display
+
+    i2c.openPromisified(i2cBusNum)
+	.then((i2cObj) => {
+	    global.Arduino = new ArduinoClass(i2cObj);
+	    global.LCD = new LCDClass(i2cObj,i2cBusNum);   // shouldn't have to pass bus num :-(
+	})
+
+    // then fire-up the LCD
+
+	.then(() => LCD.displayStart())
+
+    // finally, turn everything off and report the mode
+
+	.then(() => ModeControl.setMode('allOff'))
 	.then(() => console.log("allOff executed"))
 	.then(() => ModeControl.getSettings())
 	.then((settings) => console.log("Settings",settings))
 	.then(() => ModeControl.findMode())
 	.then((mode) => console.log("Mode is",mode));
-    
 }
 
 main();
