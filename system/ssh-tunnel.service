@@ -1,0 +1,14 @@
+[Unit]
+Description=Pool Controller SSH tunnel service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=3
+User=eric
+ExecStart=/usr/bin/ssh -N -R localhost:30124:localhost:22 eric@rothfus.com
+
+[Install]
+WantedBy=multi-user.target

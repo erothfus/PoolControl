@@ -1,0 +1,14 @@
+[Unit]
+Description=Pool Controller HTTP tunnel service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=3
+User=eric
+ExecStart=/usr/bin/ssh -N -R 0.0.0.0:30123:localhost:8080 eric@rothfus.com
+
+[Install]
+WantedBy=multi-user.target
